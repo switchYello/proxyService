@@ -1,1 +1,23 @@
-ss µÄ·şÎñ¶Ë£¬ÓĞ°×Ãûµ¥¹¦ÄÜ
+
+
+### client:
+
+type|length|host|port
+-|-|-|-|-
+byte|short|string|short
+1|x|www.github.com|443
+
+### clientï¼š
+type|timeStamp|tokenLength|token|length|host|port
+-|-|-|-|-|-|-
+byte|long|short|string|short|string|short
+2|1573029976101|n|xyxyxy|n|www.github.com|443
+
+
+### server:
+å“åº”|è¯´æ˜
+-|-
+1|è¿æ¥æˆåŠŸ
+2|éœ€è¦éªŒè¯
+Disconnect|æ‹’ç»
+

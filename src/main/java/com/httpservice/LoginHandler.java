@@ -41,21 +41,18 @@ public class LoginHandler extends ReplayingDecoder<Void> {
             if (write.contains(remote)) {
                 list.add(requestEntity.inetSocketAddress);
                 ctx.pipeline().remove(this);
-                log.debug("白名单直接放行:{}", remote);
             } else {
                 checkpoint();
-                log.debug("无此IP需要验证:{}", remote);
+                log.debug("无此IP需要验证 remote:{},link:{}", remote, requestEntity.inetSocketAddress);
                 ctx.writeAndFlush(Unpooled.wrappedBuffer(new byte[]{2}));
             }
         } else if (requestEntity.requestType == 2) {
-            if (checkToken(requestEntity)) {
-                log.debug("验证通过，加入白名单:{}", remote);
+            if (checkToken(requestEntity, remote)) {
                 write.add(remote);
                 list.add(requestEntity.inetSocketAddress);
                 ctx.pipeline().remove(this);
             } else {
                 writeReject(ctx);
-                log.debug("验证失败拒绝连接:{}", remote);
             }
         } else {
             writeReject(ctx);
@@ -99,11 +96,19 @@ public class LoginHandler extends ReplayingDecoder<Void> {
     }
 
     //检查token是否有效
-    private boolean checkToken(RequestEntity entity) {
+    private boolean checkToken(RequestEntity entity, String remote) {
+
         if (System.currentTimeMillis() - entity.timeStamp > 5000) {
+            log.debug("验证失败拒绝连接:remote{} timeStamp失效", remote);
             return false;
         }
-        return entity.token.equals(DigestUtils.md5Hex(entity.timeStamp + environment.getRemoteSalt()));
+        boolean equals = entity.token.equals(DigestUtils.md5Hex(entity.timeStamp + environment.getRemoteSalt()));
+        if (equals) {
+            return true;
+        } else {
+            log.debug("验证失败拒绝连接:remote{} token不正确", remote);
+            return false;
+        }
     }
 
 }

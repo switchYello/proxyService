@@ -6,12 +6,15 @@ import io.netty.channel.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import io.netty.util.concurrent.Promise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
 @ChannelHandler.Sharable
 public class HttpService extends SimpleChannelInboundHandler<InetSocketAddress> {
 
+    private static Logger log = LoggerFactory.getLogger(HttpService.class);
     private PromiseProvide promiseProvide;
 
     public HttpService(PromiseProvide promiseProvide) {
@@ -21,7 +24,9 @@ public class HttpService extends SimpleChannelInboundHandler<InetSocketAddress> 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, InetSocketAddress address) {
         ChannelPipeline p = ctx.pipeline();
+        long start = System.currentTimeMillis();
         Promise<Channel> promise = promiseProvide.createPromise(address, ctx);
+        //log.info("创建{}连接到连接完成共花费:{},是否成功:{}", address.getHostName(), System.currentTimeMillis() - start, channelFuture.isSuccess());
         promise.addListener(new FutureListener<Channel>() {
             @Override
             public void operationComplete(Future<Channel> channelFuture) {

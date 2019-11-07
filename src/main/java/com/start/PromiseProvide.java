@@ -1,8 +1,8 @@
 package com.start;
 
 
+import com.httpservice.ExceptionHandler;
 import com.httpservice.TransferHandler;
-import com.utils.ChannelUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -30,6 +30,7 @@ public class PromiseProvide {
                     @Override
                     protected void initChannel(Channel channel) {
                         ChannelPipeline p = channel.pipeline();
+                        p.addLast(ExceptionHandler.INSTANCE);
                         p.addLast(new TransferHandler(ctx.channel()));
                     }
                 })
@@ -40,8 +41,11 @@ public class PromiseProvide {
                         if (channelFuture.isSuccess()) {
                             promise.setSuccess(channelFuture.channel());
                         } else {
+                            promise.cancel(true);
                             channelFuture.cancel(false);
-                            ChannelUtil.closeOnFlush(ctx.channel());
+                            if (channelFuture.cause() != null) {
+                                ctx.fireExceptionCaught(channelFuture.cause());
+                            }
                         }
                     }
                 });

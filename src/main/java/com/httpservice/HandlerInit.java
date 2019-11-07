@@ -25,12 +25,10 @@ public class HandlerInit extends ChannelInitializer<Channel> {
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();
         p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-        p.addLast("exceptionHandler", ExceptionHandler.INSTANCE);
         p.addLast("ssl", new SslHandler(context.newEngine(ByteBufAllocator.DEFAULT)));
         p.addLast("login", new LoginHandler());
         p.addLast("httpservice", httpService);
-
+        p.addLast("exceptionHandler", ExceptionHandler.INSTANCE);
     }
-
 
 }

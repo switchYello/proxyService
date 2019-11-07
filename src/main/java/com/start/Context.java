@@ -1,13 +1,16 @@
 package com.start;
 
 
+import com.dns.AsnycDns;
 import com.httpservice.HandlerInit;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,18 +23,35 @@ public class Context {
     private Environment environment;
     private static Context contextHolder;
     private static boolean init;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workGroup;
+    private static Bootstrap b = new Bootstrap();
+
+    static {
+        b.channel(NioSocketChannel.class).resolver(AsnycDns.INSTANCE).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
+    }
 
     public Context() {
-        this(DEFAULT_ENVIRONMENT_PARAM);
+        this(DEFAULT_ENVIRONMENT_PARAM, 1);
     }
 
     public Context(String param) {
+        this(param, 1);
+    }
+
+    public Context(int threadCount) {
+        this(DEFAULT_ENVIRONMENT_PARAM, threadCount);
+    }
+
+    public Context(String param, int threadCount) {
         if (init) {
             throw new RuntimeException("alread existence Context");
         }
         log.info("param fileName:{}", param);
         this.environment = new Environment(param);
         contextHolder = this;
+        bossGroup = new NioEventLoopGroup(1);
+        workGroup = new NioEventLoopGroup(threadCount);
         init = true;
     }
 
@@ -49,14 +69,7 @@ public class Context {
         return contextHolder.environment;
     }
 
-
     public void start() {
-        start(1);
-    }
-
-    public void start(int threadCount) {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workGroup = new NioEventLoopGroup(threadCount);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workGroup)
@@ -65,7 +78,7 @@ public class Context {
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                     .childHandler(new HandlerInit());
             ChannelFuture f = b.bind(environment.getStartPort()).sync();
-            log.info("start at " + environment.getStartPort());
+            log.info("start at :{} ", environment.getStartPort());
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -73,6 +86,14 @@ public class Context {
             workGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+    }
+
+    public Bootstrap createBootStrap() {
+        return b.clone(workGroup);
+    }
+
+    public Bootstrap createBootStrap(EventLoopGroup group) {
+        return b.clone(group);
     }
 
 }

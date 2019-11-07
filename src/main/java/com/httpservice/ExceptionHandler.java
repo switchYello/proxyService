@@ -4,9 +4,12 @@ import com.utils.ChannelUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.UnknownHostException;
 
 @ChannelHandler.Sharable
 public class ExceptionHandler extends ChannelInboundHandlerAdapter {
@@ -27,7 +30,13 @@ public class ExceptionHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.debug("exceptionCaught", cause);
+        if (cause instanceof UnknownHostException) {
+
+        } else if (cause instanceof ConnectTimeoutException) {
+
+        } else {
+            log.debug("exceptionCaught", cause);
+        }
         ChannelUtil.closeOnFlush(ctx.channel());
     }
 }

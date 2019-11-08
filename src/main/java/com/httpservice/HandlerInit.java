@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -25,8 +26,9 @@ public class HandlerInit extends ChannelInitializer<Channel> {
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();
         p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-        p.addLast("ssl", new SslHandler(context.newEngine(ByteBufAllocator.DEFAULT)));
-        p.addLast("login", new LoginHandler());
+        //p.addLast("ssl", new SslHandler(context.newEngine(ByteBufAllocator.DEFAULT)));
+        //p.addLast("login", new LoginHandler());
+        p.addLast(new LoggingHandler());
         p.addLast("httpservice", httpService);
         p.addLast("exceptionHandler", ExceptionHandler.INSTANCE);
     }

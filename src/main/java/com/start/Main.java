@@ -1,6 +1,6 @@
 package com.start;
 
-import com.httpProxy.HttpProxyServiceInit;
+import com.proxy.httpProxy.HttpProxyServiceInit;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;

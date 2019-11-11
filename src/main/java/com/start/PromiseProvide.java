@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
  * @author xiaoming
  */
 public class PromiseProvide {
-    
+
     public ChannelFuture createPromise(final InetSocketAddress address, final ChannelHandlerContext ctx) {
         Bootstrap b = new Bootstrap();
         return b.group(ctx.channel().eventLoop())

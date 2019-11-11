@@ -1,4 +1,4 @@
-package com.httpProxy;
+package com.proxy.httpProxy;
 
 import com.utils.PasswordChecker;
 import io.netty.channel.ChannelHandler;
@@ -20,7 +20,7 @@ public class LoginHandler extends ChannelInboundHandlerAdapter {
 
     private static Logger log = LoggerFactory.getLogger(LoginHandler.class);
 
-    public static LoginHandler INSTANCE = new LoginHandler();
+    static LoginHandler INSTANCE = new LoginHandler();
 
     private LoginHandler() {
     }
@@ -28,7 +28,7 @@ public class LoginHandler extends ChannelInboundHandlerAdapter {
     //验证通过则移除this，fire消息
     //否则，发送验证指令
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         FullHttpRequest request = (FullHttpRequest) msg;
         if (PasswordChecker.digestLogin(request)) {
             ctx.pipeline().remove(this);

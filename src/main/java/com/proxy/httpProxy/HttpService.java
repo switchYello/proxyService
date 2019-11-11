@@ -1,9 +1,12 @@
-package com.httpProxy;
+package com.proxy.httpProxy;
 
+import com.dns.AsnycDns;
+import com.handlers.ExceptionHandler;
 import com.handlers.TransferHandler;
-import com.start.PromiseProvide;
 import com.utils.SuccessFutureListener;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -19,11 +22,6 @@ import java.net.InetSocketAddress;
 public class HttpService extends ChannelInboundHandlerAdapter {
 
     private static Logger log = LoggerFactory.getLogger(HttpService.class);
-    private PromiseProvide promiseProvide;
-
-    public HttpService(PromiseProvide promiseProvide) {
-        this.promiseProvide = promiseProvide;
-    }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -36,14 +34,14 @@ public class HttpService extends ChannelInboundHandlerAdapter {
         final ChannelPipeline p = ctx.pipeline();
         InetSocketAddress inetSocketAddress = resolveHostPort(req.headers().get("Host"));
         //创建远程连接，等待连接完成,,下面添加的回掉只有连接成功才会触发
-        ChannelFuture promise = promiseProvide.createPromise(inetSocketAddress, ctx);
+        ChannelFuture promise = createPromise(inetSocketAddress, ctx);
         //https代理
         if (HttpMethod.CONNECT.equals(req.method())) {
             ReferenceCountUtil.release(msg);
             //https连接完成后，开始通传，删除http相关的handler
             promise.addListener(new ChannelFutureListener() {
                 @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
+                public void operationComplete(ChannelFuture future) {
                     if (future.isSuccess()) {
                         ctx.pipeline().addLast(new TransferHandler(future.channel()));
                         FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(200, "OK"));
@@ -53,6 +51,8 @@ public class HttpService extends ChannelInboundHandlerAdapter {
                                 removeHttpHandler(p);
                             }
                         });
+                    } else {
+                        ctx.close();
                     }
                 }
             });
@@ -73,12 +73,32 @@ public class HttpService extends ChannelInboundHandlerAdapter {
                                 future.channel().pipeline().remove(HttpRequestEncoder.class);
                             }
                         });
+                    } else {
+                        ctx.close();
                     }
                 }
             });
         }
     }
 
+
+    private ChannelFuture createPromise(final InetSocketAddress address, final ChannelHandlerContext ctx) {
+        Bootstrap b = new Bootstrap();
+        return b.group(ctx.channel().eventLoop())
+                .channel(NioSocketChannel.class)
+                .resolver(AsnycDns.INSTANCE)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .remoteAddress(address)
+                .handler(new ChannelInitializer<Channel>() {
+                    @Override
+                    protected void initChannel(Channel channel) {
+                        ChannelPipeline p = channel.pipeline();
+                        p.addLast(new TransferHandler(ctx.channel()));
+                        p.addLast(ExceptionHandler.INSTANCE);
+                    }
+                })
+                .connect();
+    }
 
     private InetSocketAddress resolveHostPort(String headerHost) {
         String[] split = headerHost.split(":");

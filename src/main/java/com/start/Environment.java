@@ -1,8 +1,6 @@
 package com.start;
 
 import com.utils.ResourceManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,22 +12,14 @@ import java.util.Properties;
  */
 public class Environment {
 
-    private static final Logger log = LoggerFactory.getLogger(Environment.class);
+    private static Integer startPort;
+    //代理的账号密码
+    private static String userName;
+    private static String passWord;
 
-    private Integer startPort;
-    private String remoteSalt;
-    //http代理的账号密码
-    private String userName;
-    private String passWord;
-
-    public Environment(Properties properties) {
-        loadData(properties);
-        check();
-    }
-
-    public Environment(String fileName) {
-        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(fileName)) {
-            Objects.requireNonNull(resourceAsStream, "未发现配置文件:" + fileName);
+    static {
+        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile("param.properties")) {
+            Objects.requireNonNull(resourceAsStream, "未发现配置文件: param.properties");
             Properties properties = new Properties();
             properties.load(resourceAsStream);
             loadData(properties);
@@ -39,55 +29,31 @@ public class Environment {
         }
     }
 
-    private void loadData(Properties properties) {
-        remoteSalt = properties.getProperty("remoteSalt");
+    private static void loadData(Properties properties) {
+        String startPortProperties = properties.getProperty("startPort");
+        if (startPortProperties != null) {
+            startPort = Integer.valueOf(startPortProperties);
+        }
         userName = properties.getProperty("userName");
         passWord = properties.getProperty("passWord");
-        String startPort = properties.getProperty("startPort");
-        if (startPort != null) {
-            this.startPort = Integer.valueOf(startPort);
-        }
     }
 
-    private void check() {
+
+    private static void check() {
         Objects.requireNonNull(startPort, "未知startPort");
-        Objects.requireNonNull(remoteSalt, "未知remoteSalt");
+        Objects.requireNonNull(userName, "未知userName");
+        Objects.requireNonNull(passWord, "未知passWord");
     }
 
-
-    public Integer getStartPort() {
+    public static Integer getStartPort() {
         return startPort;
     }
 
-    public Environment setStartPort(Integer startPort) {
-        this.startPort = startPort;
-        return this;
-    }
-
-    public String getRemoteSalt() {
-        return remoteSalt;
-    }
-
-    public Environment setRemoteSalt(String remoteSalt) {
-        this.remoteSalt = remoteSalt;
-        return this;
-    }
-
-    public String getUserName() {
+    public static String getUserName() {
         return userName;
     }
 
-    public Environment setUserName(String userName) {
-        this.userName = userName;
-        return this;
-    }
-
-    public String getPassWord() {
+    public static String getPassWord() {
         return passWord;
-    }
-
-    public Environment setPassWord(String passWord) {
-        this.passWord = passWord;
-        return this;
     }
 }

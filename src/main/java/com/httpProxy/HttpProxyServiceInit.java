@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 /*
  * 作为普通http(s)代理服务器时初始化
  * */
-public class ProxyServiceInit extends ChannelInitializer<Channel> {
+public class HttpProxyServiceInit extends ChannelInitializer<Channel> {
 
     private final static SslContext context = ContextSSLFactory.getSslContextService();
     private static HttpService httpService = new HttpService(new PromiseProvide());

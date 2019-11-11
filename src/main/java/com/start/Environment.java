@@ -18,6 +18,9 @@ public class Environment {
 
     private Integer startPort;
     private String remoteSalt;
+    //http代理的账号密码
+    private String userName;
+    private String passWord;
 
     public Environment(Properties properties) {
         loadData(properties);
@@ -38,6 +41,8 @@ public class Environment {
 
     private void loadData(Properties properties) {
         remoteSalt = properties.getProperty("remoteSalt");
+        userName = properties.getProperty("userName");
+        passWord = properties.getProperty("passWord");
         String startPort = properties.getProperty("startPort");
         if (startPort != null) {
             this.startPort = Integer.valueOf(startPort);
@@ -65,6 +70,24 @@ public class Environment {
 
     public Environment setRemoteSalt(String remoteSalt) {
         this.remoteSalt = remoteSalt;
+        return this;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public Environment setUserName(String userName) {
+        this.userName = userName;
+        return this;
+    }
+
+    public String getPassWord() {
+        return passWord;
+    }
+
+    public Environment setPassWord(String passWord) {
+        this.passWord = passWord;
         return this;
     }
 }

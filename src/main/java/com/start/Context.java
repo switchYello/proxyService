@@ -2,7 +2,7 @@ package com.start;
 
 
 import com.dns.AsnycDns;
-import com.httpservice.HandlerInit;
+import com.httpProxy.ProxyServiceInit;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -76,7 +76,7 @@ public class Context {
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                    .childHandler(new HandlerInit());
+                    .childHandler(new ProxyServiceInit());
             ChannelFuture f = b.bind(environment.getStartPort()).sync();
             log.info("start at :{} ", environment.getStartPort());
             f.channel().closeFuture().sync();

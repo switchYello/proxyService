@@ -1,4 +1,4 @@
-package com.httpservice;
+package com.handlers;
 
 import com.utils.ChannelUtil;
 import io.netty.channel.Channel;
@@ -16,14 +16,11 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
         this.outChannel = outChannel;
     }
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        outChannel.write(msg);
-    }
+
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        outChannel.flush();
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        outChannel.writeAndFlush(msg);
     }
 
     @Override

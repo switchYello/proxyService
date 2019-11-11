@@ -1,4 +1,4 @@
-package com.httpservice;
+package com.handlers;
 
 import com.utils.ChannelUtil;
 import io.netty.channel.ChannelHandler;

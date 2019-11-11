@@ -1,11 +1,11 @@
 package com.proxy.socks;
 
 import com.handlers.ExceptionHandler;
-import com.proxy.abstractProxyInit;
+import com.proxy.AbstractProxyInit;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.socksx.SocksPortUnificationServerHandler;
 
-public class SocksAbstractProxyInit extends abstractProxyInit {
+public class SocksAbstractProxyInit extends AbstractProxyInit {
 
     @Override
     protected void initChannel(ChannelPipeline p) {

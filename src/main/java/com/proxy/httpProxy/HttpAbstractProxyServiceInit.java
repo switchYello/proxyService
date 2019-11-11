@@ -1,6 +1,6 @@
 package com.proxy.httpProxy;
 
-import com.proxy.abstractProxyInit;
+import com.proxy.AbstractProxyInit;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -9,7 +9,7 @@ import io.netty.handler.logging.LoggingHandler;
 /*
  * 作为普通http(s)代理服务器时初始化
  * */
-public class HttpAbstractProxyServiceInit extends abstractProxyInit {
+public class HttpAbstractProxyServiceInit extends AbstractProxyInit {
 
     private static HttpService httpService = new HttpService();
 

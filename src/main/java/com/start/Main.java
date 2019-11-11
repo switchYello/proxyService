@@ -1,6 +1,8 @@
 package com.start;
 
-import com.proxy.socks.SocksAbstractProxyInit;
+import com.proxy.ProxyInit;
+import com.proxy.ProxySelectHandler;
+import com.proxy.socks.SocksProxyInit;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -28,7 +30,7 @@ public class Main {
                     .channel(NioServerSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                    .childHandler(new SocksAbstractProxyInit());
+                    .childHandler(new ProxyInit());
             ChannelFuture f = b.bind(Environment.getStartPort()).sync();
             log.info("start at :{} ", Environment.getStartPort());
             f.channel().closeFuture().sync();

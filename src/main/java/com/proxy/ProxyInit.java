@@ -13,7 +13,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.util.concurrent.TimeUnit;
 
 @ChannelHandler.Sharable
-public abstract class AbstractProxyInit extends ChannelInitializer<Channel> {
+public class ProxyInit extends ChannelInitializer<Channel> {
 
     private final static SslContext context = ContextSSLFactory.getSslContextService();
 
@@ -25,10 +25,8 @@ public abstract class AbstractProxyInit extends ChannelInitializer<Channel> {
         p.addLast(new Rc4Handler());
         //p.addLast("ssl", new SslHandler(context.newEngine(ByteBufAllocator.DEFAULT)));
         p.addLast(new LoggingHandler());
-        initChannel(p);
 
+        p.addLast(new ProxySelectHandler());
     }
-
-    protected abstract void initChannel(ChannelPipeline p);
 
 }

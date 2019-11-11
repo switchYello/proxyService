@@ -1,21 +1,21 @@
 package com.proxy.httpProxy;
 
-import com.proxy.AbstractProxyInit;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.logging.LoggingHandler;
 
 /*
  * 作为普通http(s)代理服务器时初始化
  * */
-public class HttpAbstractProxyServiceInit extends AbstractProxyInit {
+public class HttpProxyInit extends ChannelInitializer<Channel> {
 
     private static HttpService httpService = new HttpService();
 
     @Override
-    protected void initChannel(ChannelPipeline p) {
-        p.addLast(new LoggingHandler());
+    protected void initChannel(Channel ch) {
+        ChannelPipeline p = ch.pipeline();
         p.addLast("httpcode", new HttpServerCodec());
         p.addLast("objectAggregator", new HttpObjectAggregator(1024 * 1024));
         p.addLast(LoginHandler.INSTANCE);

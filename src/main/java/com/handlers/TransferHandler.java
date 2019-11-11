@@ -16,11 +16,11 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
         this.outChannel = outChannel;
     }
 
-
-
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        outChannel.writeAndFlush(msg);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (outChannel.isActive()) {
+            outChannel.writeAndFlush(msg);
+        }
     }
 
     @Override

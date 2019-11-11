@@ -64,7 +64,6 @@ public class Rc4Handler extends ChannelInboundHandlerAdapter implements ChannelO
     }
 
     /**
-     * todo   看下 @code HttpProxyHandler 类
      *
      * @param ctx
      * @param msg

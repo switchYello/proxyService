@@ -10,6 +10,5 @@ public class SsInitializer extends ChannelInitializer<Channel> {
 		ChannelPipeline p = ch.pipeline();
 		p.addLast(new SsInitHandler());
 		p.addLast(new SsServiceHandler());
-
 	}
 }

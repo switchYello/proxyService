@@ -26,7 +26,7 @@ public class SSTransferHandler extends ChannelInboundHandlerAdapter {
 					if (future.isSuccess()) {
 						ctx.read();
 					} else {
-						log.info("写入失败原因如下",future.cause());
+						log.info("写入失败",future.cause());
 					}
 				}
 			});

@@ -15,14 +15,13 @@ import java.net.SocketAddress;
 public class SsServiceHandler extends ChannelInboundHandlerAdapter {
 
 	private static Logger log = LoggerFactory.getLogger(SsServiceHandler.class);
-	//	初始化为voidPromise，因为第一次read一定会将他初始化，如果没初始化就是异常的
+	//初始化为voidPromise，因为第一次read一定会将他初始化，如果没初始化就是异常的
 	private ChannelFuture promise;
 
-	//开始时读取一次数据
 	@Override
-	public void channelActive(ChannelHandlerContext ctx) {
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		promise = ctx.voidPromise();
-		ctx.read();
+		super.channelActive(ctx);
 	}
 
 	@Override
@@ -69,6 +68,5 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
 		} else {
 			throw new RuntimeException("未知的数据类型");
 		}
-
 	}
 }

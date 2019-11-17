@@ -1,6 +1,9 @@
 package com.handlers;
 
 import com.utils.ChannelUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -23,9 +26,9 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
+	@Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ChannelUtil.closeOnFlush(outChannel);
+        //ChannelUtil.closeOnFlush(outChannel);
         super.channelInactive(ctx);
     }
 }

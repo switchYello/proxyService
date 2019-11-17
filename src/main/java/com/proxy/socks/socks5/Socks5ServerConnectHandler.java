@@ -14,7 +14,7 @@ import io.netty.handler.logging.LoggingHandler;
 public class Socks5ServerConnectHandler extends SimpleChannelInboundHandler<Socks5CommandRequest> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Socks5CommandRequest msg) throws Exception {
+    protected void channelRead0(final ChannelHandlerContext ctx, final Socks5CommandRequest msg) throws Exception {
         String host = msg.dstAddr();
         int port = msg.dstPort();
         Bootstrap b = new Bootstrap();

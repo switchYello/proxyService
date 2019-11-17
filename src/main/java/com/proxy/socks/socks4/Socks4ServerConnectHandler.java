@@ -14,7 +14,7 @@ import io.netty.handler.logging.LoggingHandler;
 public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Socks4CommandRequest> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Socks4CommandRequest msg) throws Exception {
+    protected void channelRead0(final ChannelHandlerContext ctx, final Socks4CommandRequest msg) throws Exception {
         String host = msg.dstAddr();
         int port = msg.dstPort();
         Bootstrap b = new Bootstrap();

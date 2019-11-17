@@ -1,84 +1,53 @@
 package com.handlers;
 
-import com.utils.Rc4;
+import com.utils.Rc4Md5;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOutboundHandler;
-import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.ByteToMessageCodec;
 
-import javax.crypto.NoSuchPaddingException;
-import java.net.SocketAddress;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
-public class Rc4Handler extends ChannelInboundHandlerAdapter implements ChannelOutboundHandler {
+public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
 
-    private Rc4 rc4 = new Rc4("123");
+	private Rc4Md5 rc4 = null;
+	private boolean firstEncode = true;
+	private boolean firstDecode = true;
 
-    public Rc4Handler() throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
-    }
+	@Override
+	protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
+		byte[] origin = ByteBufUtil.getBytes(msg);
+		msg.skipBytes(origin.length);
+		if (firstEncode) {
+			out.writeBytes(rc4.getIv());
+			firstEncode = false;
+		}
+		out.writeBytes(rc4.encoder(origin));
+	}
 
-    @Override
-    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-        ctx.bind(localAddress, promise);
-    }
+	@Override
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+//		此处如果rc4没初始化则初始化，但只在第一次访问且数据大于16时会初始
+// 		编码解码只有第一个包才进行添加iv操作，其他的不需要添加
+		if (firstDecode) {
+			if (in.readableBytes() < 16) {
+				return;
+			}
+			rc4 = new Rc4Md5(ByteBufUtil.getBytes(in, in.readerIndex(), 16));
+			in.skipBytes(16);
+			firstDecode = false;
+		}
+		byte[] origin = ByteBufUtil.getBytes(in);
+		in.skipBytes(origin.length);
+		out.add(Unpooled.wrappedBuffer(rc4.decoder(origin)));
+	}
 
-    @Override
-    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) throws Exception {
-        ctx.connect(remoteAddress, localAddress, promise);
-    }
-
-    @Override
-    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-        ctx.disconnect(promise);
-    }
-
-    @Override
-    public void close(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-        ctx.close(promise);
-    }
-
-    @Override
-    public void deregister(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-        ctx.deregister(promise);
-    }
-
-    @Override
-    public void read(ChannelHandlerContext ctx) throws Exception {
-        ctx.read();
-    }
-
-    @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        ByteBuf bb = (ByteBuf) msg;
-        byte[] decoder = rc4.encoder(ByteBufUtil.getBytes(bb));
-        ctx.write(Unpooled.wrappedBuffer(decoder).retain(), promise);
-    }
-
-    @Override
-    public void flush(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
-    }
-
-    /**
-     *
-     * @param ctx
-     * @param msg
-     * @throws Exception
-     */
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ByteBuf bb = (ByteBuf) msg;
-        byte[] decoder = rc4.decoder(ByteBufUtil.getBytes(bb));
-        ctx.fireChannelRead(Unpooled.wrappedBuffer(decoder).retain());
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        super.channelReadComplete(ctx);
-    }
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		super.channelInactive(ctx);
+		rc4.finishEncoder();
+		rc4.finishDecoder();
+	}
 
 }

@@ -21,11 +21,12 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workGroup = new NioEventLoopGroup(1);
+        EventLoopGroup workGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workGroup)
                     .channel(NioServerSocketChannel.class)
+					.option(ChannelOption.SO_RCVBUF, 32 * 1024)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                     .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                     .childOption(ChannelOption.AUTO_READ, false)

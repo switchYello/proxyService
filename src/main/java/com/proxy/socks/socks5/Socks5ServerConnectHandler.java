@@ -23,7 +23,7 @@ public class Socks5ServerConnectHandler extends SimpleChannelInboundHandler<Sock
                 .resolver(AsnycDns.INSTANCE)
                 .remoteAddress(host, port)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .handler(new LoggingHandler(LogLevel.ERROR))
+                .handler(new LoggingHandler("socks5网站链接流"))
                 .connect();
         promise.addListener(new ChannelFutureListener() {
             @Override

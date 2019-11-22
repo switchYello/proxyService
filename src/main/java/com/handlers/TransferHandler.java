@@ -1,10 +1,9 @@
 package com.handlers;
 
 import com.utils.ChannelUtil;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.CompositeByteBuf;
-import io.netty.buffer.Unpooled;
+import com.utils.SuccessFutureListener;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -13,7 +12,15 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 public class TransferHandler extends ChannelInboundHandlerAdapter {
 
+    //读取数据写入这个channel里
     private Channel outChannel;
+    //是否是自动读取，如果不是自动读取，则需要写完后手动read
+    private boolean autoRead = true;
+
+    public TransferHandler(Channel outChannel, boolean autoRead) {
+        this.outChannel = outChannel;
+        this.autoRead = autoRead;
+    }
 
     public TransferHandler(Channel outChannel) {
         this.outChannel = outChannel;
@@ -22,11 +29,20 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (outChannel.isActive()) {
-            outChannel.writeAndFlush(msg);
+            ChannelFuture writeFuture = outChannel.writeAndFlush(msg);
+            //如果不是自动read，则手动read
+            if (!autoRead) {
+                writeFuture.addListener(new SuccessFutureListener<Void>() {
+                    @Override
+                    public void operationComplete0(Void v) {
+                        ctx.read();
+                    }
+                });
+            }
         }
     }
 
-	@Override
+    @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         ChannelUtil.closeOnFlush(outChannel);
         super.channelInactive(ctx);

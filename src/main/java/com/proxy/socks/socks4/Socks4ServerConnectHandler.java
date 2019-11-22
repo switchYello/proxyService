@@ -8,7 +8,6 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.socksx.v4.DefaultSocks4CommandResponse;
 import io.netty.handler.codec.socksx.v4.Socks4CommandRequest;
 import io.netty.handler.codec.socksx.v4.Socks4CommandStatus;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Socks4CommandRequest> {
@@ -23,7 +22,7 @@ public class Socks4ServerConnectHandler extends SimpleChannelInboundHandler<Sock
                 .resolver(AsnycDns.INSTANCE)
                 .remoteAddress(host, port)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .handler(new LoggingHandler(LogLevel.ERROR))
+                .handler(new LoggingHandler("socks4网站链接流"))
                 .connect();
         promise.addListener(new ChannelFutureListener() {
             @Override

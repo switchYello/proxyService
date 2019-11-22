@@ -14,6 +14,7 @@ import java.util.List;
  * hcy 2019/11/17
  * 首次接受到数据时,根据首byte,解析出域名端口,并创建连接
  * 后面访问时,直接转发不处理
+ *
  */
 public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
 

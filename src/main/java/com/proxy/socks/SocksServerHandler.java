@@ -28,13 +28,12 @@ public class SocksServerHandler extends SimpleChannelInboundHandler<SocksMessage
     protected void channelRead0(ChannelHandlerContext ctx, SocksMessage msg) throws Exception {
         if (msg.decoderResult() != DecoderResult.SUCCESS) {
             ctx.fireExceptionCaught(msg.decoderResult().cause());
+            return;
         }
         switch (msg.version()) {
             case SOCKS5:
                 //获取客户端的所有加密方式，选择一种加密方式回复，并在前面添加处理类
                 if (msg instanceof Socks5InitialRequest) {
-                    //ctx.pipeline().addBefore(ctx.name(), null, new Socks5PasswordAuthRequestDecoder());
-                    //ctx.write(new DefaultSocks5AuthMethodResponse(Socks5AuthMethod.PASSWORD));
                     ctx.pipeline().addBefore(ctx.name(), null, new Socks5CommandRequestDecoder());
                     ctx.writeAndFlush(new DefaultSocks5InitialResponse(Socks5AuthMethod.PASSWORD));
                     //如果支持账号密码认证，则使用此处，但是chrome不支持，暂时不写认证部分吧

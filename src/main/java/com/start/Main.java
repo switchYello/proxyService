@@ -24,6 +24,9 @@ public class Main {
         Main main = new Main();
         try {
             for (Conf conf : Environment.getConfs()) {
+                if (!conf.getEnable()) {
+                    continue;
+                }
                 switch (conf.getMode()) {
                     case "ss":
                         main.startSsMode(conf);

@@ -17,15 +17,23 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
     //是否是自动读取，如果不是自动读取，则需要写完后手动read
     private boolean autoRead = true;
 
+    public TransferHandler(Channel outChannel) {
+        this(outChannel, true);
+    }
+
     public TransferHandler(Channel outChannel, boolean autoRead) {
         this.outChannel = outChannel;
         this.autoRead = autoRead;
     }
 
-    public TransferHandler(Channel outChannel) {
-        this.outChannel = outChannel;
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        if (!autoRead) {
+            ctx.read();
+        }
+        super.channelActive(ctx);
     }
-
+    
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (outChannel.isActive()) {

@@ -10,6 +10,7 @@ public class Conf {
     private String mode; // ss + 透传
     private Integer localPort; // ss + 透传
     private String des; // ss + 透传
+    private Boolean enable; // ss + 透传
 
     private String passWord; // ss
     private String encrypt; // ss
@@ -78,6 +79,14 @@ public class Conf {
 
     public void setServerPort(Integer serverPort) {
         this.serverPort = serverPort;
+    }
+
+    public Boolean getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Boolean enable) {
+        this.enable = enable;
     }
 
     @Override

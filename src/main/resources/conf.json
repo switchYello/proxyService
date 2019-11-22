@@ -5,7 +5,8 @@
     "localPort": 9089,
     "passWord": "a",
     "encrypt": "rc4-md5",
-    "des": "ss服务"
+    "des": "ss服务",
+    "enable": true
   },
   {
     "name": "conf2",
@@ -13,6 +14,7 @@
     "serverHost": "127.0.0.1",
     "serverPort": 9089,
     "localPort": 9090,
-    "des": "透传服务"
+    "des": "透传服务",
+    "enable": true
   }
 ]

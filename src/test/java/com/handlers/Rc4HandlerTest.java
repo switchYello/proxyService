@@ -51,7 +51,7 @@ public class Rc4HandlerTest {
          * 1M=1000KB=1000*1000B
          * 1s=1000毫秒=1000*1000微秒=1000*1000*1000纳秒
          * */
-        System.out.println("rc4解析速度约等于:" + bytes.length * 1000.0 / longs + "MB/s");
+        System.out.println("rc4 解析 speed:" + bytes.length * 1000.0 / longs + "MB/s");
     }
 
     private long testRc4HandlerSpeed(byte[] bytes, EmbeddedChannel channel) {

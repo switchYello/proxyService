@@ -1,8 +1,7 @@
 package com.proxy;
 
-import com.handlers.AesGcmHandler;
+import com.handlers.Rc4Handler;
 import com.proxy.ss.SsInitializer;
-import com.utils.Aes128Gcm;
 import com.utils.ContextSSLFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -27,8 +26,8 @@ public class ProxyInit extends ChannelInitializer<Channel> {
         ChannelPipeline p = ch.pipeline();
         //连接超时
         p.addLast(new ReadTimeoutHandler(30, TimeUnit.SECONDS));
-        //p.addLast(new Rc4Handler());
-        p.addLast(new AesGcmHandler(new Aes128Gcm()));
+        p.addLast(new Rc4Handler());
+        //p.addLast(new AesGcmHandler(new Aes128Gcm()));
         //p.addLast("ssl", new SslHandler(context.newEngine(ByteBufAllocator.DEFAULT)));
         p.addLast(new LoggingHandler("客户端请求流"));
         //p.addLast(new SocksProxyInit());

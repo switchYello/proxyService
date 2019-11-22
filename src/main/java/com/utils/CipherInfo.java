@@ -1,6 +1,9 @@
 package com.utils;
 
-public interface AesInfo {
+/*
+ * 加密策略的基本信息
+ * */
+public interface CipherInfo {
 
     int getKeySize();
 

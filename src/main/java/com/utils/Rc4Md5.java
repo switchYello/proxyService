@@ -8,11 +8,32 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-public class Rc4Md5 {
+public class Rc4Md5 implements CipherInfo {
 
     private static String name = "RC4";
     private Cipher encoder;
     private Cipher decoder;
+
+    @Override
+    public int getKeySize() {
+        return 16;
+    }
+
+    @Override
+    public int getSaltSize() {
+        throw new RuntimeException("算法不支持salt");
+    }
+
+    /*这个在不同算法中也叫iv，有的叫note*/
+    @Override
+    public int getNonceSize() {
+        return 16;
+    }
+
+    @Override
+    public int getTagSize() {
+        throw new RuntimeException("算法不支持tag");
+    }
 
     /*
      * 根据密码和内容加密，

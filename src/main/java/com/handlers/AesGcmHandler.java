@@ -34,14 +34,14 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     private boolean firstEncode = true;
     //编码nonce递增值
     private long encoderIndex = 0;
-    private Key encodeKey;
+    private byte[] encodeKey;
 
     //解码nonce递增值
     private long decoderIndex = 0;
     //解码读取的数据长度，存储于此，在数据不足需要等待数据到来时，保存数据长度
     private int dataLength;
     //解码用到的key，每个连接用一个
-    private Key decodeKey;
+    private byte[] decodeKey;
     //解码当前状态
     private DecoderStatus decoderStatus = DecoderStatus.FIRST;
 

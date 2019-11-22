@@ -12,6 +12,9 @@ import io.netty.handler.codec.ByteToMessageCodec;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/*
+ * rc4 md5协议，加密解密
+ * */
 public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
     //全局原始密码
     private static byte[] password = Environment.getPassWord().getBytes(StandardCharsets.UTF_8);
@@ -22,21 +25,22 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
     //编码接收到的iv，为了兼容手机端app，解码也使用这个iv，理论上应该是不同的
     private byte[] encodeIv;
     private byte[] decodeIv;
-    private byte[] decodeKey;
+    //加密使用的key，此协议生成一次就不再生成了
     private byte[] encodeKey;
+    private byte[] decodeKey;
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
         byte[] origin = readByte(msg, msg.readableBytes());
         if (firstEncode) {
+            if (rc4 == null) {
+                rc4 = new Rc4Md5();
+            }
             /*
              * encodeIv默认在decode时会设置，如果先调用encode方法，则随机生成encodeIv
              * */
             if (encodeIv == null) {
-                encodeIv = KeyUtil.randomBytes(16);
-            }
-            if (rc4 == null) {
-                rc4 = new Rc4Md5();
+                encodeIv = KeyUtil.randomBytes(rc4.getNonceSize());
             }
             out.writeBytes(encodeIv);
 //           生成encodeKey时，如果两个iv相同，则直接拷贝key而不是创建新的
@@ -51,17 +55,17 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
 //		此处如果rc4没初始化则初始化，但只在第一次访问且数据大于16时会初始
 // 		编码解码只有第一个包才进行添加iv操作，其他的不需要添加
         if (firstDecode) {
-            if (in.readableBytes() < 16) {
-                return;
-            }
-            decodeIv = readByte(in, 16);
-            decodeKey = KeyUtil.md5IvKey(password, decodeIv);
-            if (encodeIv == null) {
-                encodeIv = decodeIv;
-            }
             if (rc4 == null) {
                 rc4 = new Rc4Md5();
             }
+            if (in.readableBytes() < rc4.getNonceSize()) {
+                return;
+            }
+            decodeIv = readByte(in, rc4.getNonceSize());
+            if (encodeIv == null) {
+                encodeIv = decodeIv;
+            }
+            decodeKey = KeyUtil.md5IvKey(password, decodeIv);
             firstDecode = false;
         }
         byte[] origin = readByte(in, in.readableBytes());

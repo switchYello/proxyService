@@ -1,0 +1,18 @@
+[
+  {
+    "name": "conf1",
+    "mode": "ss",
+    "localPort": 443,
+    "passWord": "abc",
+    "encrypt": "aes-192-gcm",
+    "des": "ss服务在443端口"
+  },
+  {
+    "name": "conf2",
+    "mode": "forward",
+    "serverHost": "127.0.0.1",
+    "serverPort": 443,
+    "localPort": 9090,
+    "des": "透传服务在9090端口，服务器在127.0.0.1:443"
+  }
+]

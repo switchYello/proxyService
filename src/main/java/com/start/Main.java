@@ -1,58 +1,109 @@
 package com.start;
 
 import com.proxy.ProxyInit;
+import com.proxy.forwarder.ForwarderInitializer;
+import com.utils.Conf;
+import com.utils.SuccessFutureListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.ssl.SslContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import java.security.KeyStore;
 
 public class Main {
 
     private static Logger log = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) throws InterruptedException {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workGroup = new NioEventLoopGroup();
+    private EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    private EventLoopGroup workGroup = new NioEventLoopGroup(1);
+
+    public static void main(String[] args) {
+        Main main = new Main();
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workGroup)
-                    .channel(NioServerSocketChannel.class)
-					.option(ChannelOption.SO_RCVBUF, 32 * 1024)
-                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                    .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                    .childOption(ChannelOption.AUTO_READ, false)
-                    .childHandler(new ProxyInit());
-            ChannelFuture f = b.bind(Environment.getStartPort()).sync();
-            log.info("start at :{} ", Environment.getStartPort());
-            f.channel().closeFuture().sync();
-        } finally {
-            workGroup.shutdownGracefully();
+            for (Conf conf : Environment.getConfs()) {
+                switch (conf.getMode()) {
+                    case "ss":
+                        main.startSsMode(conf);
+                        break;
+                    case "forward":
+                        main.startForwardMode(conf);
+                        break;
+                    default:
+                        throw new RuntimeException("unknow mode " + conf.getMode());
+                }
+            }
+        } catch (Exception e) {
+            log.info("main方法报错", e);
+            main.close();
+        }
+
+    }
+
+    //启动ss服务器端
+    private void startSsMode(Conf conf) throws InterruptedException {
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workGroup)
+                .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+                .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+                .childOption(ChannelOption.SO_LINGER, 1)
+                .childOption(ChannelOption.AUTO_READ, false)
+                .childAttr(Conf.conf_key, conf.getName())
+                .childHandler(new ProxyInit());
+        ChannelFuture f = b.bind(conf.getLocalPort());
+        f.addListener(new SuccessFutureListener<Void>() {
+            @Override
+            public void operationComplete0(Void v) {
+                log.info("start ss:{}", conf);
+            }
+        });
+        f.channel().closeFuture().addListener(new SuccessFutureListener<Void>() {
+            @Override
+            public void operationComplete0(Void future) {
+                log.info("ss server close");
+            }
+        });
+    }
+
+    private void startForwardMode(Conf conf) throws InterruptedException {
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workGroup)
+                .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+                .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+                .childOption(ChannelOption.SO_LINGER, 1)
+                .childOption(ChannelOption.AUTO_READ, false)
+                .childAttr(Conf.conf_key, conf.getName())
+                .childHandler(new ForwarderInitializer());
+        ChannelFuture f = b.bind(conf.getLocalPort());
+        f.addListener(new SuccessFutureListener<Void>() {
+            @Override
+            public void operationComplete0(Void v) {
+                log.info("start forward:{}", conf);
+            }
+        });
+        f.channel().closeFuture().addListener(new SuccessFutureListener<Void>() {
+            @Override
+            public void operationComplete0(Void future) {
+                log.info("forward server close");
+            }
+        });
+    }
+
+    public void close() {
+        if (bossGroup != null) {
             bossGroup.shutdownGracefully();
         }
-    }
-
-
-    private SslContext createSSlContext() {
-        try {
-            String password = "123456";
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(ClassLoader.getSystemResourceAsStream(""), password.toCharArray());
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(keyStore, password.toCharArray());
-            SSLContext tls = SSLContext.getInstance("TLS");
-            tls.init(kmf.getKeyManagers(), null, null);
-        } catch (Exception e) {
-
+        if (workGroup != null) {
+            workGroup.shutdownGracefully();
         }
-        return null;
+        log.info("server close !");
     }
+
+
 }

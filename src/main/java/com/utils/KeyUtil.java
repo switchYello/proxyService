@@ -5,7 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +31,12 @@ public class KeyUtil {
     /*
      * 创建hkdf协议使用的key
      * aes gcm使用这种方法创建的key
+     *
+     * 注意如果给定的password长度太小，需要使用exPassword方法扩大到算法需要的长度
      * */
     public static byte[] createHkdfKey(String password, byte[] salt, int keySize) throws GeneralSecurityException {
         byte[] hmacsha1s = com.google.crypto.tink.subtle.Hkdf
-                .computeHkdf("HMACSHA1", exPassword(password, 16), salt, info, keySize);
+                .computeHkdf("HMACSHA1", exPassword(password, keySize), salt, info, keySize);
         return hmacsha1s;
     }
 
@@ -74,11 +79,11 @@ public class KeyUtil {
         byte[] result = new byte[length];
         while (true) {
             byte[] hash = DigestUtils.md5(password);
-            System.arraycopy(hash, 0, result, i, hash.length);
+            System.arraycopy(hash, 0, result, i, Math.min(hash.length, length - i));
             i += hash.length;
             if (i >= length) {
                 break;
-            }
+            }//如果一次md5生成的hash数量不够，则 拷贝 hash+原始密码，再次hash
             byte[] temp = new byte[hash.length + password.length];
             System.arraycopy(hash, 0, temp, 0, hash.length);
             System.arraycopy(password, 0, temp, hash.length, password.length);

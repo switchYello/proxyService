@@ -9,8 +9,6 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * @author xiaoming
  * 检测http代理是否登录，验证账号密码

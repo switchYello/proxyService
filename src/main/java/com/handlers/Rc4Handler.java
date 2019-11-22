@@ -1,6 +1,7 @@
 package com.handlers;
 
 import com.start.Environment;
+import com.utils.Conf;
 import com.utils.KeyUtil;
 import com.utils.Rc4Md5;
 import io.netty.buffer.ByteBuf;
@@ -16,8 +17,9 @@ import java.util.List;
  * rc4 md5协议，加密解密
  * */
 public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
+
     //全局原始密码
-    private static byte[] password = Environment.getPassWord().getBytes(StandardCharsets.UTF_8);
+    private static byte[] password = new byte[0];
     private Rc4Md5 rc4 = null;
     //是否是第一次编码，第一次解码
     private boolean firstEncode = true;
@@ -28,6 +30,15 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
     //加密使用的key，此协议生成一次就不再生成了
     private byte[] encodeKey;
     private byte[] decodeKey;
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        Conf conf = Environment.gotConfFromChannel(ctx.channel());
+        if (conf != null) {
+            password = conf.getPassWord().getBytes(StandardCharsets.UTF_8);
+        }
+    }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {

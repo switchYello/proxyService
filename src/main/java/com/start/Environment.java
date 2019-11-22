@@ -1,59 +1,58 @@
 package com.start;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.utils.Conf;
 import com.utils.ResourceManager;
+import io.netty.channel.Channel;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
-import java.util.Properties;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * 所有配置
  */
 public class Environment {
 
-    private static Integer startPort;
-    //代理的账号密码
-    private static String userName;
-    private static String passWord;
+    private static final String CONF_NAME = "conf.json";
+    private static Map<String, Conf> confMap = new HashMap<>();
 
     static {
-        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile("param.properties")) {
-            Objects.requireNonNull(resourceAsStream, "未发现配置文件: param.properties");
-            Properties properties = new Properties();
-            properties.load(resourceAsStream);
-            loadData(properties);
-            check();
+        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(CONF_NAME)) {
+            Objects.requireNonNull(resourceAsStream, "未发现配置文件:" + CONF_NAME);
+            BufferedReader read = new BufferedReader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            String temp;
+            while ((temp = read.readLine()) != null) {
+                sb.append(temp);
+            }
+            List<Conf> confs = new ObjectMapper().readValue(sb.toString(), new TypeReference<List<Conf>>() {
+            });
+            for (Conf conf : confs) {
+                confMap.put(conf.getName(), conf);
+            }
+
         } catch (IOException e) {
             throw new RuntimeException("读取配置文件异常", e);
         }
     }
 
-    private static void loadData(Properties properties) {
-        String startPortProperties = properties.getProperty("startPort");
-        if (startPortProperties != null) {
-            startPort = Integer.valueOf(startPortProperties);
-        }
-        userName = properties.getProperty("userName");
-        passWord = properties.getProperty("passWord");
+
+    public static List<Conf> getConfs() {
+        return new ArrayList<>(confMap.values());
     }
 
-
-    private static void check() {
-        Objects.requireNonNull(startPort, "未知startPort");
-        Objects.requireNonNull(userName, "未知userName");
-        Objects.requireNonNull(passWord, "未知passWord");
+    public static Conf getByName(String name) {
+        return confMap.get(name);
     }
 
-    public static Integer getStartPort() {
-        return startPort;
+    public static Conf gotConfFromChannel(Channel channel) {
+        String key = channel.attr(Conf.conf_key).get();
+        return getByName(key);
     }
 
-    public static String getUserName() {
-        return userName;
-    }
-
-    public static String getPassWord() {
-        return passWord;
-    }
 }

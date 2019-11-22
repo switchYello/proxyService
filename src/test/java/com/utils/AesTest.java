@@ -16,10 +16,10 @@ import java.security.Key;
 public class AesTest {
 
     @Test
-    public void testAesGsm() throws GeneralSecurityException {
+    public void testAes128Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
         Aes128Gcm aes = new Aes128Gcm();
-        Key key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
+        byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         byte[] encoder = aes.encoder(key, randomIv, content);
         //加密后的数据长度等于 原始长度 + tagLength
@@ -32,7 +32,7 @@ public class AesTest {
     public void testAes192Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
         Aes aes = new Aes192Gcm();
-        Key key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
+        byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         byte[] encoder = aes.encoder(key, randomIv, content);
         //加密后的数据长度等于 原始长度 + tagLength
@@ -45,7 +45,7 @@ public class AesTest {
     public void testAes256Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
         Aes aes = new Aes256Gcm();
-        Key key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
+        byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         byte[] encoder = aes.encoder(key, randomIv, content);
         //加密后的数据长度等于 原始长度 + tagLength

@@ -40,7 +40,7 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                         @Override
                         protected void initChannel(Channel channel) {
                             ChannelPipeline p = channel.pipeline();
-                            p.addLast(new LoggingHandler("与网站连接"));
+                            p.addLast(new LoggingHandler("ss网站连接"));
                             p.addLast(new TransferHandler(ctx.channel(), false));
                             p.addLast(ExceptionHandler.INSTANCE);
                         }
@@ -52,7 +52,7 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                                 ctx.read();
                                 future.channel().read();
                             } else {
-                                log.info("连接外网失败", future.cause());
+                                log.debug("连接外网失败", future.cause());
                                 ctx.close();
                             }
                         }

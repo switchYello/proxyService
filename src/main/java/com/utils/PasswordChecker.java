@@ -1,6 +1,5 @@
 package com.utils;
 
-import com.start.Environment;
 import io.netty.handler.codec.http.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -20,9 +19,9 @@ public class PasswordChecker {
 
     private static String proxyHead = "Proxy-Authorization";
     private static String hostHead = "Host";
-
-    private static String realUserName = Environment.getUserName();
-    private static String realPassword = Environment.getPassWord();
+    //http代理认证帐号密码
+    private static String realUserName = "username";
+    private static String realPassword = "pass123";
 
     //digest方式登录
     public static boolean digestLogin(HttpRequest req) {

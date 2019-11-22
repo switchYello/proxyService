@@ -2,6 +2,7 @@ package com.handlers;
 
 import com.start.Environment;
 import com.utils.Aes;
+import com.utils.Conf;
 import com.utils.KeyUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -9,8 +10,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
-import java.security.Key;
-import java.security.SecureRandom;
 import java.util.List;
 
 import static com.handlers.AesGcmHandler.DecoderStatus.ERR;
@@ -20,8 +19,7 @@ import static com.handlers.AesGcmHandler.DecoderStatus.READ_LENGTH;
 public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
 
     private Aes aes;
-    private static String password = Environment.getPassWord();
-    private static SecureRandom random = new SecureRandom();
+    private String password = "";
 
     public AesGcmHandler(Aes aes) {
         this.aes = aes;
@@ -34,16 +32,18 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     private boolean firstEncode = true;
     //编码nonce递增值
     private long encoderIndex = 0;
-    private byte[] encodeKey;
-
     //解码nonce递增值
     private long decoderIndex = 0;
-    //解码读取的数据长度，存储于此，在数据不足需要等待数据到来时，保存数据长度
-    private int dataLength;
+
+    private byte[] encodeKey;
     //解码用到的key，每个连接用一个
     private byte[] decodeKey;
+
+    //解码读取的数据长度，存储于此，在数据不足需要等待数据到来时，保存数据长度
+    private int dataLength;
     //解码当前状态
     private DecoderStatus decoderStatus = DecoderStatus.FIRST;
+
 
     enum DecoderStatus {
         /*初次读取，前saltLength位是盐*/
@@ -57,7 +57,17 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        Conf conf = Environment.gotConfFromChannel(ctx.channel());
+        if (conf != null) {
+            password = conf.getPassWord();
+        }
+    }
+
+    @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
+
         if (firstEncode) {
             byte[] encodeSalt = KeyUtil.randomBytes(aes.getSaltSize());
             out.writeBytes(encodeSalt);

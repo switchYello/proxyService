@@ -7,12 +7,7 @@ import com.utils.KeyUtil;
 import io.netty.buffer.*;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * hcy 2019/11/17
@@ -63,61 +58,26 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class AesGcmHandlerTest {
 
-    /*先执行热机用的*/
-    @Before
-    public void a1hotVm() throws InterruptedException {
-        int runCount = 10;
-        final CountDownLatch endCountDown = new CountDownLatch(runCount);
-        for (int i = 0; i < runCount; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bytes = KeyUtil.randomBytes(1024 * 1024);
-                    testAes128GcmSpeed(bytes);
-                    endCountDown.countDown();
-                }
-            }).start();
-        }
-        endCountDown.await(10, TimeUnit.SECONDS);
+    @Test
+    public void testAes128GcmSpeed() {
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes128GcmSpeed");
     }
 
     @Test
-    public void testaesGcm128Speed() throws InterruptedException {
-        int runCount = 10;
-        final CountDownLatch startCountDown = new CountDownLatch(1);
-        final CountDownLatch endCountDown = new CountDownLatch(runCount);
-        final AtomicLong data = new AtomicLong();
-        final AtomicLong time = new AtomicLong();
-        //开启5个线程同时执行加解密，执行完成统计凭据速度
-        for (int i = 0; i < runCount; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024);
-                    try {
-                        startCountDown.await();
-                    } catch (InterruptedException ignored) {
-                    }
-                    data.addAndGet(bytes.length);
-                    long longs = testAes128GcmSpeed(bytes);
-                    time.addAndGet(longs);
-                    endCountDown.countDown();
-                }
-            }).start();
-        }
-        //开始程序并等待执行完成
-        startCountDown.countDown();
-        endCountDown.await();
-        /*
-         * 1M=1000KB=1000*1000B
-         * 1s=1000毫秒=1000*1000微秒=1000*1000*1000纳秒
-         * */
-        System.out.println("aes128 GCM解析速度约等于:" + data.longValue() * 1000.0 / time.longValue() + "MB/s");
+    public void testAes192GcmSpeed() {
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes192GcmSpeed");
+    }
+
+    @Test
+    public void testAes256GcmSpeed() {
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes256GcmSpeed");
     }
 
 
-    private long testAes128GcmSpeed(byte[] bytes) {
-        EmbeddedChannel channel = new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm()));
+    private void testAesGcmSpeed(EmbeddedChannel channel, byte[] bytes, String name) {
         long startTime = System.nanoTime();
         //写入out通道，对数据进行加密
         Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
@@ -138,128 +98,9 @@ public class AesGcmHandlerTest {
         Assert.assertArrayEquals(bytes, ByteBufUtil.getBytes(byteBufs));
         Assert.assertTrue(byteBufs.release());
         Assert.assertFalse(channel.finish());
-        return System.nanoTime() - startTime;
-    }
-
-
-    @Test
-    public void testAes192GcmSpeed() throws InterruptedException {
-        int runCount = 10;
-        final CountDownLatch startCountDown = new CountDownLatch(1);
-        final CountDownLatch endCountDown = new CountDownLatch(runCount);
-        final AtomicLong data = new AtomicLong();
-        final AtomicLong time = new AtomicLong();
-        //开启5个线程同时执行加解密，执行完成统计凭据速度
-        for (int i = 0; i < runCount; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024);
-                    try {
-                        startCountDown.await();
-                    } catch (InterruptedException ignored) {
-                    }
-                    data.addAndGet(bytes.length);
-                    long longs = testAes128GcmSpeed(bytes);
-                    time.addAndGet(longs);
-                    endCountDown.countDown();
-                }
-            }).start();
+        if (name != null) {
+            System.out.println(name + "encoder decoder speed:" + bytes.length * 1000.0 / (System.nanoTime() - startTime) + "MB/s");
         }
-        //开始程序并等待执行完成
-        startCountDown.countDown();
-        endCountDown.await();
-        /*
-         * 1M=1000KB=1000*1000B
-         * 1s=1000毫秒=1000*1000微秒=1000*1000*1000纳秒
-         * */
-        System.out.println("aes192 GCM解析速度约等于:" + data.longValue() * 1000.0 / time.longValue() + "MB/s");
-    }
-
-
-    private long testAes192GcmSpeed(byte[] bytes) {
-        EmbeddedChannel channel = new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm()));
-        long startTime = System.nanoTime();
-        //写入out通道，对数据进行加密
-        Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
-        //将数据读出，分片成多个
-        //将加密的数据重新写入inBound,进行解密
-        Object o;
-        while ((o = channel.readOutbound()) != null) {
-            channel.writeInbound(o);
-        }
-        //从inBound将解密结果读取聚合起来
-        CompositeByteBuf byteBufs = new CompositeByteBuf(ByteBufAllocator.DEFAULT, false, 32);
-        Object o2;
-        while ((o2 = channel.readInbound()) != null) {
-            ByteBuf b = (ByteBuf) o2;
-            byteBufs.addComponent(true, b);
-        }
-        //断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(bytes, ByteBufUtil.getBytes(byteBufs));
-        Assert.assertTrue(byteBufs.release());
-        Assert.assertFalse(channel.finish());
-        return System.nanoTime() - startTime;
-    }
-
-    @Test
-    public void testAes256GcmSpeed() throws InterruptedException {
-        int runCount = 10;
-        final CountDownLatch startCountDown = new CountDownLatch(1);
-        final CountDownLatch endCountDown = new CountDownLatch(runCount);
-        final AtomicLong data = new AtomicLong();
-        final AtomicLong time = new AtomicLong();
-        //开启5个线程同时执行加解密，执行完成统计凭据速度
-        for (int i = 0; i < runCount; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024);
-                    try {
-                        startCountDown.await();
-                    } catch (InterruptedException ignored) {
-                    }
-                    data.addAndGet(bytes.length);
-                    long longs = testAes128GcmSpeed(bytes);
-                    time.addAndGet(longs);
-                    endCountDown.countDown();
-                }
-            }).start();
-        }
-        //开始程序并等待执行完成
-        startCountDown.countDown();
-        endCountDown.await();
-        /*
-         * 1M=1000KB=1000*1000B
-         * 1s=1000毫秒=1000*1000微秒=1000*1000*1000纳秒
-         * */
-        System.out.println("aes256 GCM解析速度约等于:" + data.longValue() * 1000.0 / time.longValue() + "MB/s");
-    }
-
-
-    private long testAes256GcmSpeed(byte[] bytes) {
-        EmbeddedChannel channel = new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm()));
-        long startTime = System.nanoTime();
-        //写入out通道，对数据进行加密
-        Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
-        //将数据读出，分片成多个
-        //将加密的数据重新写入inBound,进行解密
-        Object o;
-        while ((o = channel.readOutbound()) != null) {
-            channel.writeInbound(o);
-        }
-        //从inBound将解密结果读取聚合起来
-        CompositeByteBuf byteBufs = new CompositeByteBuf(ByteBufAllocator.DEFAULT, false, 32);
-        Object o2;
-        while ((o2 = channel.readInbound()) != null) {
-            ByteBuf b = (ByteBuf) o2;
-            byteBufs.addComponent(true, b);
-        }
-        //断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(bytes, ByteBufUtil.getBytes(byteBufs));
-        Assert.assertTrue(byteBufs.release());
-        Assert.assertFalse(channel.finish());
-        return System.nanoTime() - startTime;
     }
 
 }

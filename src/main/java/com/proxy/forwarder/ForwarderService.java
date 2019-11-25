@@ -1,7 +1,7 @@
 package com.proxy.forwarder;
 
 import com.dns.AsnycDns;
-import com.handlers.ExceptionHandler;
+import com.handlers.IdleStateHandlerImpl;
 import com.handlers.TransferHandler;
 import com.start.Environment;
 import com.utils.Conf;
@@ -25,7 +25,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(final ChannelHandlerContext ctx) {
         //这是main方法中设置进每个连接的conf属性，这里直接取出来用
-        Conf conf = Environment.gotConfFromChannel(ctx.channel());
+        final Conf conf = Environment.gotConfFromChannel(ctx.channel());
         ChannelFuture promise = createPromise(InetSocketAddress.createUnresolved(conf.getServerHost(), conf.getServerPort()), ctx);
         promise.addListener(new ChannelFutureListener() {
             @Override
@@ -54,9 +54,9 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
                     @Override
                     protected void initChannel(Channel channel) {
                         ChannelPipeline p = channel.pipeline();
+                        p.addLast(new IdleStateHandlerImpl(30, 30, 0));
                         p.addLast(new LoggingHandler("Forwarder服务器连接流"));
                         p.addLast(new TransferHandler(ctx.channel(), false));
-                        p.addLast(ExceptionHandler.INSTANCE);
                     }
                 })
                 .connect();

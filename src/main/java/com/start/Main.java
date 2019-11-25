@@ -1,7 +1,8 @@
 package com.start;
 
-import com.proxy.ProxyInit;
+
 import com.proxy.forwarder.ForwarderInitializer;
+import com.proxy.ss.SsInitializer;
 import com.utils.Conf;
 import com.utils.SuccessFutureListener;
 import io.netty.bootstrap.ServerBootstrap;
@@ -46,7 +47,7 @@ public class Main {
     }
 
     //启动ss服务器端
-    private void startSsMode(Conf conf) throws InterruptedException {
+    private void startSsMode(final Conf conf) throws InterruptedException {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
@@ -56,8 +57,8 @@ public class Main {
                 .childOption(ChannelOption.SO_LINGER, 1)
                 .childOption(ChannelOption.AUTO_READ, false)
                 .childAttr(Conf.conf_key, conf.getName())
-                .childHandler(new ProxyInit());
-        ChannelFuture f = b.bind(conf.getLocalPort());
+                .childHandler(new SsInitializer());
+        ChannelFuture f = b.bind("0.0.0.0", conf.getLocalPort());
         f.addListener(new SuccessFutureListener<Void>() {
             @Override
             public void operationComplete0(Void v) {
@@ -72,7 +73,7 @@ public class Main {
         });
     }
 
-    private void startForwardMode(Conf conf) throws InterruptedException {
+    private void startForwardMode(final Conf conf) throws InterruptedException {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
@@ -83,7 +84,7 @@ public class Main {
                 .childOption(ChannelOption.AUTO_READ, false)
                 .childAttr(Conf.conf_key, conf.getName())
                 .childHandler(new ForwarderInitializer());
-        ChannelFuture f = b.bind(conf.getLocalPort());
+        ChannelFuture f = b.bind("0.0.0.0", conf.getLocalPort());
         f.addListener(new SuccessFutureListener<Void>() {
             @Override
             public void operationComplete0(Void v) {

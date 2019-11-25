@@ -12,9 +12,7 @@ import io.netty.handler.codec.ByteToMessageCodec;
 
 import java.util.List;
 
-import static com.handlers.AesGcmHandler.DecoderStatus.ERR;
-import static com.handlers.AesGcmHandler.DecoderStatus.READ_DATA;
-import static com.handlers.AesGcmHandler.DecoderStatus.READ_LENGTH;
+import static com.handlers.AesGcmHandler.DecoderStatus.*;
 
 public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
 
@@ -158,4 +156,9 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
         decoderStatus = status;
     }
 
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        checkDecoderStatus(DecoderStatus.ERR);
+    }
 }

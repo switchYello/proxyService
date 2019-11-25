@@ -1,5 +1,6 @@
 package com.proxy.httpProxy;
 
+import com.handlers.IdleStateHandlerImpl;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -16,6 +17,7 @@ public class HttpProxyInit extends ChannelInitializer<Channel> {
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();
+        p.addLast(new IdleStateHandlerImpl(30, 30, 0));
         p.addLast("httpcode", new HttpServerCodec());
         p.addLast("objectAggregator", new HttpObjectAggregator(1024 * 1024));
         p.addLast(LoginHandler.INSTANCE);

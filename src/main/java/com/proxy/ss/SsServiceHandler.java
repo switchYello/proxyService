@@ -1,7 +1,6 @@
 package com.proxy.ss;
 
 import com.dns.AsnycDns;
-import com.handlers.ExceptionHandler;
 import com.handlers.TransferHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -42,7 +41,6 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                             ChannelPipeline p = channel.pipeline();
                             p.addLast(new LoggingHandler("ss网站连接"));
                             p.addLast(new TransferHandler(ctx.channel(), false));
-                            p.addLast(ExceptionHandler.INSTANCE);
                         }
                     }).connect().addListener(new ChannelFutureListener() {
                         @Override

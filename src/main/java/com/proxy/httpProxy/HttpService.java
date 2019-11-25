@@ -1,7 +1,6 @@
 package com.proxy.httpProxy;
 
 import com.dns.AsnycDns;
-import com.handlers.ExceptionHandler;
 import com.handlers.TransferHandler;
 import com.utils.SuccessFutureListener;
 import io.netty.bootstrap.Bootstrap;
@@ -94,7 +93,6 @@ public class HttpService extends ChannelInboundHandlerAdapter {
                     protected void initChannel(Channel channel) {
                         ChannelPipeline p = channel.pipeline();
                         p.addLast(new TransferHandler(ctx.channel()));
-                        p.addLast(ExceptionHandler.INSTANCE);
                     }
                 })
                 .connect();

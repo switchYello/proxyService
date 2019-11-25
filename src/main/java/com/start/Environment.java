@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 所有配置
@@ -19,7 +20,7 @@ import java.util.*;
 public class Environment {
 
     private static final String CONF_NAME = "conf.json";
-    private static Map<String, Conf> confMap = new HashMap<>();
+    private static List<Conf> confs;
 
     static {
         try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(CONF_NAME)) {
@@ -30,11 +31,8 @@ public class Environment {
             while ((temp = read.readLine()) != null) {
                 sb.append(temp);
             }
-            List<Conf> confs = new ObjectMapper().readValue(sb.toString(), new TypeReference<List<Conf>>() {
+            confs = new ObjectMapper().readValue(sb.toString(), new TypeReference<List<Conf>>() {
             });
-            for (Conf conf : confs) {
-                confMap.put(conf.getName(), conf);
-            }
 
         } catch (IOException e) {
             throw new RuntimeException("读取配置文件异常", e);
@@ -43,16 +41,11 @@ public class Environment {
 
 
     public static List<Conf> getConfs() {
-        return new ArrayList<>(confMap.values());
-    }
-
-    public static Conf getByName(String name) {
-        return confMap.get(name);
+        return confs;
     }
 
     public static Conf getConfFromChannel(Channel channel) {
-        String key = channel.attr(Conf.conf_key).get();
-        return getByName(key);
+        return channel.attr(Conf.conf_key).get();
     }
 
 

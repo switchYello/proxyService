@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 /*
  * 作为普通http(s)代理服务器时初始化
  * */
-public class HttpProxyInit extends ChannelInitializer<Channel> {
+public class HttpProxyInitializer extends ChannelInitializer<Channel> {
 
     private static HttpService httpService = new HttpService();
 

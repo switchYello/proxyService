@@ -50,9 +50,10 @@ public class Environment {
         return confMap.get(name);
     }
 
-    public static Conf gotConfFromChannel(Channel channel) {
+    public static Conf getConfFromChannel(Channel channel) {
         String key = channel.attr(Conf.conf_key).get();
         return getByName(key);
     }
+
 
 }

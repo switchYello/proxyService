@@ -44,7 +44,7 @@ public class Rc4HandlerTest {
     @Test
     public void testRc4Speed() throws InterruptedException {
 
-        byte[] bytes = KeyUtil.randomBytes(50 * 1024 * 1024);
+        byte[] bytes = KeyUtil.randomBytes(10 * 1024 * 1024);
         EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
         long longs = testRc4HandlerSpeed(bytes, channel);
         /*

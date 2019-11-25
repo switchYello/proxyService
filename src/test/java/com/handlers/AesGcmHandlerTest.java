@@ -61,19 +61,19 @@ public class AesGcmHandlerTest {
     @Test
     public void testAes128GcmSpeed() {
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes128GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes128GcmSpeed");
     }
 
     @Test
     public void testAes192GcmSpeed() {
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes192GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes192GcmSpeed");
     }
 
     @Test
     public void testAes256GcmSpeed() {
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(50 * 1024 * 1024), "Aes256GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes256GcmSpeed");
     }
 
 

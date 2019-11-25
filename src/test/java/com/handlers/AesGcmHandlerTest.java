@@ -60,7 +60,7 @@ public class AesGcmHandlerTest {
 
     @Test
     public void testAes128GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes128GcmSpeed");
     }
 

@@ -7,6 +7,9 @@ import io.netty.channel.ChannelHandler;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 根据算法名称 查找加密算法handler
+ */
 public class Encrypt {
 
     private static Map<String, HandlerFactory> map = new HashMap<>();

@@ -35,8 +35,8 @@ public class Rc4HandlerTest {
 
     /*不参与测试，热机用的*/
     @Before
-    public void a1hotVm() throws InterruptedException {
-        byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024);
+    public void a1hotVm() {
+        byte[] bytes = KeyUtil.randomBytes(2 * 1024 * 1024);
         EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
         testRc4HandlerSpeed(bytes, channel);
     }
@@ -66,7 +66,7 @@ public class Rc4HandlerTest {
             channel.writeInbound(o);
         }
         //从inBound将解密结果读取聚合起来
-        CompositeByteBuf byteBufs = new CompositeByteBuf(ByteBufAllocator.DEFAULT, false, 32);
+        CompositeByteBuf byteBufs = new CompositeByteBuf(ByteBufAllocator.DEFAULT, false, 64);
         Object o2;
         while ((o2 = channel.readInbound()) != null) {
             ByteBuf b = (ByteBuf) o2;

@@ -42,7 +42,6 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
-        byte[] origin = readByte(msg, msg.readableBytes());
         if (firstEncode) {
             if (rc4 == null) {
                 rc4 = new Rc4Md5();
@@ -58,6 +57,7 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
             encodeKey = encodeIv == decodeIv ? decodeKey : KeyUtil.md5IvKey(password, encodeIv);
             firstEncode = false;
         }
+        byte[] origin = readByte(msg, msg.readableBytes());
         out.writeBytes(rc4.encoder(encodeKey, origin));
     }
 
@@ -79,8 +79,8 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
             decodeKey = KeyUtil.md5IvKey(password, decodeIv);
             firstDecode = false;
         }
-        byte[] origin = readByte(in, in.readableBytes());
-        out.add(Unpooled.wrappedBuffer(rc4.decoder(decodeKey, origin)));
+        byte[] bytes = readByte(in, in.readableBytes());
+        out.add(Unpooled.wrappedBuffer(rc4.decoder(decodeKey, bytes)));
     }
 
     @Override

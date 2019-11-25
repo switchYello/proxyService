@@ -1,17 +1,22 @@
 package com.utils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * 生成各种各样的key
+ * */
 public class KeyUtil {
 
     private static final Logger log = LoggerFactory.getLogger(KeyUtil.class);
@@ -24,6 +29,7 @@ public class KeyUtil {
         AEAD_AES_192_GCM	    AES-192-gcm	            24	      24	    12	        16
         AEAD_AES_128_GCM	    AES-128-gcm	            16	      16	    12	        16
     */
+
     private final static byte[] info = "ss-subkey".getBytes();
 
     /*
@@ -33,10 +39,39 @@ public class KeyUtil {
      * 注意如果给定的password长度太小，需要使用exPassword方法扩大到算法需要的长度
      * */
     public static byte[] createHkdfKey(String password, byte[] salt, int keySize) throws GeneralSecurityException {
-        byte[] hmacsha1s = com.google.crypto.tink.subtle.Hkdf
-                .computeHkdf("HMACSHA1", exPassword(password, keySize), salt, info, keySize);
-        return hmacsha1s;
+        byte[] prk = hkdfExtract(salt, exPassword(password, keySize));
+        return hkdfExpand(prk, info, keySize);
     }
+
+    //hkdf 提取  ork = extract(salt,ikm)
+    private static byte[] hkdfExtract(byte[] salt, byte[] passsword) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA1");
+        SecretKeySpec keySpec = new SecretKeySpec(salt, "HmacSHA1");
+        mac.init(keySpec);
+        return mac.doFinal(passsword);
+    }
+
+    //扩展 key = Expand(prk,info,length)
+    private static byte[] hkdfExpand(byte[] prk, byte[] info, int length) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA1");
+        SecretKeySpec keySpec = new SecretKeySpec(prk, "HmacSHA1");
+        mac.init(keySpec);
+        byte[] result = new byte[length];
+        int pos = 0;
+        byte[] digest = new byte[0];
+        byte t = 1;
+        while (pos < result.length) {
+            mac.update(digest);
+            mac.update(info);
+            mac.update(t);
+            digest = mac.doFinal();
+            System.arraycopy(digest, 0, result, pos, Math.min(digest.length, length - pos));
+            pos += digest.length;
+            t++;
+        }
+        return result;
+    }
+
 
     /*
      * 根据简单密钥和iv构建复杂密钥
@@ -59,8 +94,10 @@ public class KeyUtil {
         return bytes;
     }
 
-
-    private static byte[] exPassword(String passwordStr, int length) {
+    /*
+     * 通过算法，将password扩大到指定长度
+     * */
+    public static byte[] exPassword(String passwordStr, int length) {
         Map<Integer, byte[]> intMap = exPasswoedCache.get(passwordStr);
         if (intMap == null) {
             intMap = new HashMap<>();
@@ -71,24 +108,19 @@ public class KeyUtil {
             log.debug("exPassword走缓存 passwoed:{},length:{}", passwordStr, length);
             return bytes;
         }
-
-        int i = 0;
+        //当前生成密钥长度
+        int pos = 0;
         byte[] password = passwordStr.getBytes(StandardCharsets.UTF_8);
-        byte[] result = new byte[length];
-        while (true) {
+        ByteBuf result = Unpooled.buffer(length);
+        do {
             byte[] hash = DigestUtils.md5(password);
-            System.arraycopy(hash, 0, result, i, Math.min(hash.length, length - i));
-            i += hash.length;
-            if (i >= length) {
-                break;
-            }//如果一次md5生成的hash数量不够，则 拷贝 hash+原始密码，再次hash
-            byte[] temp = new byte[hash.length + password.length];
-            System.arraycopy(hash, 0, temp, 0, hash.length);
-            System.arraycopy(password, 0, temp, hash.length, password.length);
-            password = temp;
-        }
-        intMap.put(length, result);
-        return result;
+            result.writeBytes(hash, 0, Math.min(hash.length, length - pos));
+            pos += hash.length;
+            //如果一次md5生成的hash数量不够，则 拷贝 hash+原始密码，再次hash
+            password = ByteBufUtil.getBytes(Unpooled.wrappedBuffer(hash, password));
+        } while (pos < length);
+        intMap.put(length, result.array());
+        return intMap.get(length);
     }
 
 }

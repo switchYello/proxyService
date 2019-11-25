@@ -5,10 +5,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.resolver.AddressResolver;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.ResolvedAddressTypes;
-import io.netty.resolver.dns.DnsNameResolver;
-import io.netty.resolver.dns.DnsNameResolverBuilder;
-import io.netty.resolver.dns.DnsServerAddressStreamProvider;
-import io.netty.resolver.dns.SingletonDnsServerAddressStreamProvider;
+import io.netty.resolver.dns.*;
 import io.netty.util.concurrent.EventExecutor;
 
 import java.net.InetSocketAddress;
@@ -39,7 +36,9 @@ public class AsnycDns extends AddressResolverGroup {
     }
 
     private DnsServerAddressStreamProvider pro() {
-        return new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.8.8", 53));
+        SingletonDnsServerAddressStreamProvider s1 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.8.8", 53));
+        SingletonDnsServerAddressStreamProvider s2 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("114.114.114.114", 53));
+        return new MultiDnsServerAddressStreamProvider(s1, s2);
     }
 
     private void assertTrue(boolean instance, String msg) {

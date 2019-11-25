@@ -4,7 +4,7 @@ import io.netty.util.AttributeKey;
 
 public class Conf {
 
-    public final static AttributeKey<String> conf_key = AttributeKey.newInstance("conf");
+    public final static AttributeKey<Conf> conf_key = AttributeKey.newInstance("conf");
 
     private String name; // ss + 透传
     private String mode; // ss + 透传

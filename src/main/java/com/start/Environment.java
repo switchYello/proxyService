@@ -46,13 +46,8 @@ public class Environment {
         return new ArrayList<>(confMap.values());
     }
 
-    public static Conf getByName(String name) {
-        return confMap.get(name);
-    }
-
     public static Conf gitConfFromChannel(Channel channel) {
-        String key = channel.attr(Conf.conf_key).get();
-        return getByName(key);
+        return channel.attr(Conf.conf_key).get();
     }
 
 }

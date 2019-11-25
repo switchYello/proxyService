@@ -25,7 +25,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(final ChannelHandlerContext ctx) {
         //这是main方法中设置进每个连接的conf属性，这里直接取出来用
-        final Conf conf = Environment.gotConfFromChannel(ctx.channel());
+        final Conf conf = Environment.gitConfFromChannel(ctx.channel());
         ChannelFuture promise = createPromise(InetSocketAddress.createUnresolved(conf.getServerHost(), conf.getServerPort()), ctx);
         promise.addListener(new ChannelFutureListener() {
             @Override

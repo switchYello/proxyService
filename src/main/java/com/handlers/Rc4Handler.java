@@ -34,7 +34,7 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        Conf conf = Environment.gotConfFromChannel(ctx.channel());
+        Conf conf = Environment.gitConfFromChannel(ctx.channel());
         if (conf != null) {
             password = conf.getPassWord().getBytes(StandardCharsets.UTF_8);
         }

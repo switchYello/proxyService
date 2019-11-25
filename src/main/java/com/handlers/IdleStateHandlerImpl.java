@@ -14,14 +14,6 @@ public class IdleStateHandlerImpl extends IdleStateHandler {
         super(readerIdleTimeSeconds, writerIdleTimeSeconds, allIdleTimeSeconds);
     }
 
-    public IdleStateHandlerImpl(long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit) {
-        super(readerIdleTime, writerIdleTime, allIdleTime, unit);
-    }
-
-    public IdleStateHandlerImpl(boolean observeOutput, long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit) {
-        super(observeOutput, readerIdleTime, writerIdleTime, allIdleTime, unit);
-    }
-
     @Override
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) {
         ChannelUtil.closeOnFlush(ctx.channel());

@@ -47,7 +47,7 @@ public class Main {
     }
 
     //启动ss服务器端
-    private void startSsMode(final Conf conf) throws InterruptedException {
+    private void startSsMode(final Conf conf) {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
@@ -73,7 +73,7 @@ public class Main {
         });
     }
 
-    private void startForwardMode(final Conf conf) throws InterruptedException {
+    private void startForwardMode(final Conf conf) {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workGroup)
                 .channel(NioServerSocketChannel.class)

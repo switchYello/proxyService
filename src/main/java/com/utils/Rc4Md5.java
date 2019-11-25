@@ -21,7 +21,7 @@ public class Rc4Md5 implements CipherInfo {
         throw new RuntimeException("算法不支持salt");
     }
 
-    /*这个在不同算法中也叫iv，有的叫note*/
+    /*这个在不同算法中也叫iv，有的叫nonce*/
     @Override
     public int getNonceSize() {
         return 16;

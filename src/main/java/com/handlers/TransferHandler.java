@@ -6,16 +6,19 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 交换输入输出
  */
 public class TransferHandler extends ChannelInboundHandlerAdapter {
 
+    private static Logger log = LoggerFactory.getLogger(TransferHandler.class);
     //读取数据写入这个channel里
     private Channel outChannel;
     //是否是自动读取，如果不是自动读取，则需要写完后手动read
-    private boolean autoRead = true;
+    private boolean autoRead;
 
     public TransferHandler(Channel outChannel) {
         this(outChannel, true);
@@ -33,9 +36,9 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
         }
         super.channelActive(ctx);
     }
-    
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(final ChannelHandlerContext ctx, Object msg) {
         if (outChannel.isActive()) {
             ChannelFuture writeFuture = outChannel.writeAndFlush(msg);
             //如果不是自动read，则手动read
@@ -54,5 +57,10 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         ChannelUtil.closeOnFlush(outChannel);
         super.channelInactive(ctx);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        log.debug("", cause);
     }
 }

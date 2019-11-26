@@ -12,6 +12,8 @@ import io.netty.handler.logging.LoggingHandler;
 public class SsInitializer extends ChannelInitializer<Channel> {
 
     //private final static SslContext context = ContextSSLFactory.getSslContextService();
+    public static SsInitializer INSTANCE = new SsInitializer();
+
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();

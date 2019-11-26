@@ -54,10 +54,11 @@ public class Main {
                 .option(ChannelOption.SO_RCVBUF, 32 * 1024)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
                 .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
+                .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childOption(ChannelOption.SO_LINGER, 1)
                 .childOption(ChannelOption.AUTO_READ, false)
                 .childAttr(Conf.conf_key, conf)
-                .childHandler(new SsInitializer());
+                .childHandler(SsInitializer.INSTANCE);
         ChannelFuture f = b.bind("0.0.0.0", conf.getLocalPort());
         f.addListener(new SuccessFutureListener<Void>() {
             @Override

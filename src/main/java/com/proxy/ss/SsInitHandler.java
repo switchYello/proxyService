@@ -62,6 +62,7 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
                     in.skipBytes(in.readableBytes());
             }
         } catch (Signal replay) {
+            //字节不够则手动读，因为刚开始自动读是关闭的
             ctx.read();
             throw replay;
         }

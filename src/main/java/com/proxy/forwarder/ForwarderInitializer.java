@@ -11,6 +11,8 @@ import io.netty.handler.logging.LoggingHandler;
  */
 public class ForwarderInitializer extends ChannelInitializer<Channel> {
 
+    public static ForwarderInitializer INSTANCE = new ForwarderInitializer();
+
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();

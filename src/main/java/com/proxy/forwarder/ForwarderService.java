@@ -32,7 +32,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {
                     log.debug("Forwarder客户端请求连接到服务器 {}:{}", conf.getServerHost(), conf.getServerPort());
-                    ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel(), false));
+                    ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel()));
                     ctx.channel().config().setAutoRead(true);
                 } else {
                     log.debug("Forwarder连接服务器失败:", future.cause());

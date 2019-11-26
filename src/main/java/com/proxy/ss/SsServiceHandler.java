@@ -31,8 +31,9 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
             promise = b.group(ctx.channel().eventLoop())
                     .channel(NioSocketChannel.class)
                     .resolver(AsnycDns.INSTANCE)
-                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                    //.option(ChannelOption.SO_RCVBUF, 128 * 1024)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                    .option(ChannelOption.SO_LINGER, 1)
                     .option(ChannelOption.AUTO_READ, false)
                     .remoteAddress((SocketAddress) msg)
                     .handler(new ChannelInitializer<Channel>() {

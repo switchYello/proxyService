@@ -44,7 +44,7 @@ public class Environment {
         return confs;
     }
 
-    public static Conf gitConfFromChannel(Channel channel) {
+    public static Conf getConfFromChannel(Channel channel) {
         return channel.attr(Conf.conf_key).get();
     }
 

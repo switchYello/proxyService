@@ -2,6 +2,7 @@ package com.proxy.forwarder;
 
 import com.handlers.IdleStateHandlerImpl;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LoggingHandler;
@@ -9,8 +10,10 @@ import io.netty.handler.logging.LoggingHandler;
 /**
  * 此为透传工具初始化类
  */
+@ChannelHandler.Sharable
 public class ForwarderInitializer extends ChannelInitializer<Channel> {
 
+    public static ForwarderInitializer INSTANCE = new ForwarderInitializer();
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();

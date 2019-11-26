@@ -33,7 +33,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
                 if (future.isSuccess()) {
                     log.debug("Forwarder客户端请求连接到服务器 {}:{}", conf.getServerHost(), conf.getServerPort());
                     ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel(), false));
-                    ctx.read();
+                    ctx.channel().config().setAutoRead(true);
                 } else {
                     log.debug("Forwarder连接服务器失败:", future.cause());
                     ctx.close();
@@ -49,14 +49,14 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
                 .resolver(AsnycDns.INSTANCE)
                 .remoteAddress(address)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.AUTO_READ, false)
+                .option(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .handler(new ChannelInitializer<Channel>() {
                     @Override
                     protected void initChannel(Channel channel) {
                         ChannelPipeline p = channel.pipeline();
                         p.addLast(new IdleStateHandlerImpl(30, 30, 0));
                         p.addLast(new LoggingHandler("Forwarder服务器连接流"));
-                        p.addLast(new TransferHandler(ctx.channel(), false));
+                        p.addLast(new TransferHandler(ctx.channel()));
                     }
                 })
                 .connect();

@@ -31,25 +31,24 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
             promise = b.group(ctx.channel().eventLoop())
                     .channel(NioSocketChannel.class)
                     .resolver(AsnycDns.INSTANCE)
-                    //.option(ChannelOption.SO_RCVBUF, 128 * 1024)
+                    .option(ChannelOption.SO_RCVBUF, 128 * 1024)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                     .option(ChannelOption.SO_LINGER, 1)
-                    .option(ChannelOption.AUTO_READ, false)
                     .remoteAddress((SocketAddress) msg)
                     .handler(new ChannelInitializer<Channel>() {
                         @Override
                         protected void initChannel(Channel channel) {
                             ChannelPipeline p = channel.pipeline();
                             p.addLast(new LoggingHandler("ss网站连接"));
-                            p.addLast(new TransferHandler(ctx.channel(), false));
+                            //连接网站的连接是自动读取的，因为连接成功后网站是不会主动发信息的
+                            p.addLast(new TransferHandler(ctx.channel()));
                         }
                     }).connect().addListener(new ChannelFutureListener() {
                         @Override
                         public void operationComplete(ChannelFuture future) {
-//							连接外网成功第一时间读取数据
+                            //连接网站成功将客户端连接流设为自动读，该方法会触发一次读
                             if (future.isSuccess()) {
-                                ctx.read();
-                                future.channel().read();
+                                ctx.channel().config().setAutoRead(true);
                             } else {
                                 log.debug("连接外网失败", future.cause());
                                 ctx.close();
@@ -61,7 +60,9 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                 @Override
                 public void operationComplete(ChannelFuture future) {
                     if (future.isSuccess()) {
-                        ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel(), false));
+                        if (!ctx.isRemoved()) {
+                            ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel()));
+                        }
                         ctx.fireChannelRead(msg);
                     }
                 }

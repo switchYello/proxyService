@@ -42,6 +42,7 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
         try {
             switch (state()) {
                 case init: {
+                    //根据首字母判断类型,规则和socks5一致
                     Socks5AddressType socks5AddressType = Socks5AddressType.valueOf(in.readByte());
                     String host = addressDecoder.decodeAddress(socks5AddressType, in);
                     int port = in.readUnsignedShort();
@@ -64,6 +65,7 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
                     break;
             }
         } catch (Signal replay) {
+            //数据量不够就主动读取
             ctx.read();
             throw replay;
         }

@@ -57,7 +57,7 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-        Conf conf = Environment.gitConfFromChannel(ctx.channel());
+        Conf conf = Environment.getConfFromChannel(ctx.channel());
         if (conf != null) {
             password = conf.getPassWord();
         }

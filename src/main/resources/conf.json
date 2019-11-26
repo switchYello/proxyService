@@ -12,9 +12,9 @@
     "name": "conf2",
     "mode": "forward",
     "serverHost": "127.0.0.1",
-    "serverPort": 9039,
+    "serverPort": 9089,
     "localPort": 9090,
     "des": "TC服务",
-    "enable": false
+    "enable": true
   }
 ]

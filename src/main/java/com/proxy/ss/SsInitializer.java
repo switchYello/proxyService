@@ -22,7 +22,7 @@ public class SsInitializer extends ChannelInitializer<Channel> {
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();
-        Conf conf = Environment.gitConfFromChannel(ch);
+        Conf conf = Environment.getConfFromChannel(ch);
         //连接超时
         p.addLast(new IdleStateHandlerImpl(30, 30, 0));
         //加密解密方式

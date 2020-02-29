@@ -1,7 +1,7 @@
 package com.proxy.forwarder;
 
 import com.dns.AsnycDns;
-import com.handlers.IdleStateHandlerImpl;
+import com.handlers.TimeOutHandler;
 import com.handlers.TransferHandler;
 import com.start.Environment;
 import com.utils.Conf;
@@ -32,7 +32,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {
                     log.debug("Forwarder客户端请求连接到服务器 {}:{}", conf.getServerHost(), conf.getServerPort());
-                    ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel()));
+                    ctx.pipeline().replace(ForwarderService.this, null, new TransferHandler(future.channel()));
                     ctx.channel().config().setAutoRead(true);
                 } else {
                     log.debug("Forwarder连接服务器失败:", future.cause());
@@ -56,7 +56,7 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
                     @Override
                     protected void initChannel(Channel channel) {
                         ChannelPipeline p = channel.pipeline();
-                        p.addLast(new IdleStateHandlerImpl(30, 30, 0));
+                        p.addLast(new TimeOutHandler(30, 30, 0));
                         p.addLast(new LoggingHandler("Forwarder服务器连接流"));
                         p.addLast(new TransferHandler(ctx.channel()));
                     }

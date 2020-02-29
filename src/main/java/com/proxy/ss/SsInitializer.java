@@ -1,6 +1,6 @@
 package com.proxy.ss;
 
-import com.handlers.IdleStateHandlerImpl;
+import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
 import com.utils.Encrypt;
@@ -24,7 +24,7 @@ public class SsInitializer extends ChannelInitializer<Channel> {
         ChannelPipeline p = ch.pipeline();
         Conf conf = Environment.getConfFromChannel(ch);
         //连接超时
-        p.addLast(new IdleStateHandlerImpl(30, 30, 0));
+        p.addLast(new TimeOutHandler(30, 30, 0));
         //加密解密方式
         if (isDebug) {
             p.addLast(new LoggingHandler("ss客户端请求流 密文"));

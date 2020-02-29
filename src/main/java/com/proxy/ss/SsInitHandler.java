@@ -49,6 +49,7 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
                     out.add(InetSocketAddress.createUnresolved(host, port));
                     checkpoint(Status.success);
                 }
+                //为什么要有这一步而不是直接移除当前handler呢，因为netty有个bug，直接移除会导致后面的字节乱序
                 case success: {
                     int readableBytes = actualReadableBytes();
                     if (readableBytes > 0) {

@@ -1,6 +1,6 @@
 package com.proxy.forwarder;
 
-import com.handlers.IdleStateHandlerImpl;
+import com.handlers.TimeOutHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -16,7 +16,7 @@ public class ForwarderInitializer extends ChannelInitializer<Channel> {
     @Override
     protected void initChannel(Channel ch) {
         ChannelPipeline p = ch.pipeline();
-        p.addLast(new IdleStateHandlerImpl(30, 30, 0));
+        p.addLast(new TimeOutHandler(30, 30, 0));
         p.addLast(new LoggingHandler("Forwarder客户端请求流"));
         p.addLast(ForwarderService.INSTANCE);
     }

@@ -103,6 +103,15 @@
                         </goals>
                         <configuration>
                             <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <!--com.fasterxml.jackson.databind.ext.Java7Support-->
+                                    <artifact>com.fasterxml.jackson.core:jackson-databind</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

@@ -49,9 +49,8 @@ public class ForwarderService extends ChannelInboundHandlerAdapter {
                 .resolver(AsnycDns.INSTANCE)
                 .remoteAddress(address)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.SO_LINGER, 1)
                 .option(ChannelOption.SO_RCVBUF, 128 * 1024)
-                .option(ChannelOption.AUTO_READ, true)
+                .option(ChannelOption.TCP_NODELAY, true)
                 .handler(new ChannelInitializer<Channel>() {
                     @Override
                     protected void initChannel(Channel channel) {

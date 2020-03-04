@@ -33,7 +33,7 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                     .resolver(AsnycDns.INSTANCE)
                     .option(ChannelOption.SO_RCVBUF, 128 * 1024)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                    .option(ChannelOption.SO_LINGER, 1)
+                    .option(ChannelOption.TCP_NODELAY, true)
                     .remoteAddress((SocketAddress) msg)
                     .handler(new ChannelInitializer<Channel>() {
                         @Override

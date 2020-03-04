@@ -37,7 +37,7 @@ public class AsnycDns extends AddressResolverGroup {
 
     private DnsServerAddressStreamProvider pro() {
         SingletonDnsServerAddressStreamProvider s1 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.8.8", 53));
-        SingletonDnsServerAddressStreamProvider s2 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.4.4", 53));
+        SingletonDnsServerAddressStreamProvider s2 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("114.114.114.114", 53));
         return new MultiDnsServerAddressStreamProvider(s1, s2);
     }
 

@@ -27,4 +27,3 @@ ss，shadowsocket模式。
 
 
 就是一个java写的shadowsocker服务端，配置好端口，密码，加密方式，启动即可。
->>>>>>> Stashed changes

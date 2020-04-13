@@ -1,10 +1,12 @@
 package com.utils;
 
+import io.netty.buffer.ByteBuf;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 
 /**
  * hcy 2019/11/17
@@ -33,7 +35,7 @@ public abstract class Aes implements CipherInfo {
     }
 
     //加密得到的结果等于 iv + 加密后的数据
-    public byte[] encoder(byte[] key, byte[] iv, byte[] content) throws GeneralSecurityException {
+    public ByteBuf encoder(byte[] key, byte[] iv, ByteBuf content) throws GeneralSecurityException {
         switch (encodeStatus) {
             case none: {
                 encoderChipher = Cipher.getInstance(algorithm);
@@ -41,14 +43,19 @@ public abstract class Aes implements CipherInfo {
             }
             case init: {
                 GCMParameterSpec params = new GCMParameterSpec(128, iv);
-                encoderChipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key,"AES"), params);
+                encoderChipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), params);
                 encodeStatus = Status.encode;
             }
             case encode: {
-                //加密后的数据长度等于原始据长度 + tagLength
-                byte[] encryptData = encoderChipher.doFinal(content);
+                int outputSize = encoderChipher.getOutputSize(content.readableBytes());
+                ByteBuf out = content.alloc().ioBuffer(outputSize);
+                ByteBuffer outData = out.nioBuffer(0, outputSize);
+                //加密后的数据长度等于原始据长度 + tagLength,,返回值为outData的长度
+                int length = encoderChipher.doFinal(content.nioBuffer(), outData);
                 encodeStatus = Status.init;
-                return encryptData;
+                content.skipBytes(content.readableBytes());
+                out.writerIndex(length);
+                return out;
             }
             default:
                 throw new RuntimeException("aes 加密器状态不正确 encodeStatus = " + encodeStatus);
@@ -59,7 +66,7 @@ public abstract class Aes implements CipherInfo {
      * 解密 加密函数返回的数据 为 12位iv + 加密后的数据
      * @param encoderByte
      */
-    public byte[] decoder(byte[] key, byte[] iv, byte[] encoderByte) throws GeneralSecurityException {
+    public ByteBuf decoder(byte[] key, byte[] iv, ByteBuf encoderByte) throws GeneralSecurityException {
         switch (decodeStatus) {
             case none: {
                 decoderChipher = Cipher.getInstance(algorithm);
@@ -69,12 +76,17 @@ public abstract class Aes implements CipherInfo {
                 //128, 120, 112, 104, 96
                 GCMParameterSpec params = new GCMParameterSpec(128, iv);
                 //根据初始化key 和 向量进行初始化chipher
-                decoderChipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key,"AES"), params);
+                decoderChipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), params);
                 decodeStatus = Status.decode;
             case decode: {
-                byte[] bytes = decoderChipher.doFinal(encoderByte);
+                int outputSize = decoderChipher.getOutputSize(encoderByte.readableBytes());
+                ByteBuf out = encoderByte.alloc().ioBuffer(outputSize);
+                ByteBuffer outData = out.nioBuffer(0, outputSize);
+                int length = decoderChipher.doFinal(encoderByte.nioBuffer(), outData);
                 decodeStatus = Status.init;
-                return bytes;
+                encoderByte.skipBytes(encoderByte.readableBytes());
+                out.writerIndex(length);
+                return out;
             }
             default:
                 throw new RuntimeException("aes 解密器状态不正确 decodeStatus = " + decodeStatus);

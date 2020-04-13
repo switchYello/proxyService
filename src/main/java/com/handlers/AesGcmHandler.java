@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
 
@@ -74,12 +75,16 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
         }
         //此处一直到将所有数据加密完才行
         while (msg.readableBytes() > 0) {
-            //读取数据，但不能超过上限
-            byte[] origin = readByte(msg, Math.min(limitDataLength, msg.readableBytes()));
-            int payloadLength = origin.length;
-            byte[] encryptedPayloadLength = aes.encoder(encodeKey, getEncodeNonce(), Unpooled.copyShort(payloadLength).array());
-            byte[] encryptedPayload = aes.encoder(encodeKey, getEncodeNonce(), origin);
-            out.writeBytes(encryptedPayloadLength).writeBytes(encryptedPayload);
+            //切片出数据，但不能超过上限
+            ByteBuf data = msg.readSlice(Math.min(limitDataLength, msg.readableBytes()));
+            int payloadLength = data.readableBytes();
+
+            ByteBuf encryptedPayloadLength = aes.encoder(encodeKey, getEncodeNonce(), Unpooled.copyShort(payloadLength));
+            ByteBuf encryptedPayload = aes.encoder(encodeKey, getEncodeNonce(), data);
+            out.writeBytes(encryptedPayloadLength);
+            out.writeBytes(encryptedPayload);
+            ReferenceCountUtil.release(encryptedPayloadLength);
+            ReferenceCountUtil.release(encryptedPayload);
         }
     }
 
@@ -102,10 +107,12 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
                 if (in.readableBytes() < 2 + aes.getTagSize()) {
                     return;
                 }
-                byte[] payloadLenTagAndLen = readByte(in, 2 + aes.getTagSize());
+                ByteBuf payloadLenTagAndLen = in.readSlice(2 + aes.getTagSize());
                 //解密并获取数据长度
-                byte[] decoder = aes.decoder(decodeKey, getDecodeNonce(), payloadLenTagAndLen);
-                dataLength = (0xff & decoder[0]) << 8 | (0xff & decoder[1]);
+                ByteBuf decoder = aes.decoder(decodeKey, getDecodeNonce(), payloadLenTagAndLen);
+                dataLength = decoder.readShort();
+                ReferenceCountUtil.release(decoder);
+
                 if (dataLength > limitDataLength) {
                     //这里长度超过限制，说明数据错误的，忽略接下来的所有数据
                     checkDecoderStatus(ERR);
@@ -118,9 +125,9 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
                 if (in.readableBytes() < dataLength + aes.getTagSize()) {
                     return;
                 }
-                byte[] payloaData = readByte(in, dataLength + aes.getTagSize());
-                byte[] decoder2 = aes.decoder(decodeKey, getDecodeNonce(), payloaData);
-                out.add(Unpooled.wrappedBuffer(decoder2));
+                ByteBuf payloadData = in.readSlice(dataLength + aes.getTagSize());
+                ByteBuf decoder2 = aes.decoder(decodeKey, getDecodeNonce(), payloadData);
+                out.add(decoder2);
                 checkDecoderStatus(READ_LENGTH);
                 break;
             }
@@ -155,7 +162,6 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     private void checkDecoderStatus(DecoderStatus status) {
         decoderStatus = status;
     }
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

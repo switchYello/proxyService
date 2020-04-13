@@ -61,23 +61,24 @@ public class AesGcmHandlerTest {
 
     @Test
     public void testAes256GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes256GcmSpeed");
     }
 
     @Test
     public void testAes192GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes192GcmSpeed");
     }
-    
+
     @Test
     public void testAes128GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
         testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes128GcmSpeed");
     }
 
     private void testAesGcmSpeed(EmbeddedChannel channel, byte[] bytes, String name) {
+        byte[] origint = bytes.clone();
         long startTime = System.nanoTime();
         //写入out通道，对数据进行加密
         Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
@@ -95,7 +96,7 @@ public class AesGcmHandlerTest {
             byteBufs.addComponent(true, b);
         }
         //断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(bytes, ByteBufUtil.getBytes(byteBufs));
+        Assert.assertArrayEquals(origint, ByteBufUtil.getBytes(byteBufs));
         Assert.assertTrue(byteBufs.release());
         Assert.assertFalse(channel.finish());
         if (name != null) {

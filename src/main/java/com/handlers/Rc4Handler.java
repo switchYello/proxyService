@@ -6,9 +6,9 @@ import com.utils.KeyUtil;
 import com.utils.Rc4Md5;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
+import io.netty.util.ReferenceCountUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -49,16 +49,20 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
             /*
              * encodeIv默认在decode时会设置，如果先调用encode方法，则随机生成encodeIv
              * */
-            if (encodeIv == null) {
+           // if (encodeIv == null) {
                 encodeIv = KeyUtil.randomBytes(rc4.getNonceSize());
-            }
+            //}
             out.writeBytes(encodeIv);
 //           生成encodeKey时，如果两个iv相同，则直接拷贝key而不是创建新的
-            encodeKey = encodeIv == decodeIv ? decodeKey : KeyUtil.md5IvKey(password, encodeIv);
+            encodeKey = KeyUtil.md5IvKey(password, encodeIv);
             firstEncode = false;
         }
-        byte[] origin = readByte(msg, msg.readableBytes());
-        out.writeBytes(rc4.encoder(encodeKey, origin));
+        //加密得到密文，并且msg的read指针已经往后移动了
+        ByteBuf outData = rc4.encoder(encodeKey, msg);
+        //输出数据
+        out.writeBytes(outData);
+        //释放outData
+        ReferenceCountUtil.release(outData);
     }
 
     @Override
@@ -73,14 +77,16 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
                 return;
             }
             decodeIv = readByte(in, rc4.getNonceSize());
-            if (encodeIv == null) {
-                encodeIv = decodeIv;
-            }
+            //这里解密获取iv时，将加密用的iv也设成同样的
+//            if (encodeIv == null) {
+//                encodeIv = decodeIv;
+//            }
             decodeKey = KeyUtil.md5IvKey(password, decodeIv);
             firstDecode = false;
         }
-        byte[] bytes = readByte(in, in.readableBytes());
-        out.add(Unpooled.wrappedBuffer(rc4.decoder(decodeKey, bytes)));
+        //解密并处理in的read指针
+        ByteBuf outData = rc4.decoder(decodeKey, in);
+        out.add(outData);
     }
 
     @Override

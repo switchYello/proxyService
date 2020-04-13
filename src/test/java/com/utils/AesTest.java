@@ -1,5 +1,7 @@
 package com.utils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 import org.junit.Test;
@@ -10,48 +12,59 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 
 
 public class AesTest {
 
     @Test
     public void testAes128Gsm() throws GeneralSecurityException {
-        byte[] content = KeyUtil.randomBytes(50);
+        byte[] content = KeyUtil.randomBytes(5 * 1024);
+        byte[] origin = content.clone();
         Aes128Gcm aes = new Aes128Gcm();
         byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
-        byte[] encoder = aes.encoder(key, randomIv, content);
+        ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.length, content.length + aes.getTagSize());
-        byte[] decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertArrayEquals(content, decoder);
+        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        ByteBuf decoder = aes.decoder(key, randomIv, encoder);
+        Assert.assertEquals(origin.length, decoder.readableBytes());
+        for (int i = 0; i < origin.length; i++) {
+            Assert.assertEquals(origin[i], decoder.getByte(i));
+        }
     }
 
     @Test
     public void testAes192Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
+        byte[] origin = content.clone();
         Aes aes = new Aes192Gcm();
         byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
-        byte[] encoder = aes.encoder(key, randomIv, content);
+        ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.length, content.length + aes.getTagSize());
-        byte[] decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertArrayEquals(content, decoder);
+        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        ByteBuf decoder = aes.decoder(key, randomIv, encoder);
+        Assert.assertEquals(origin.length, decoder.readableBytes());
+        for (int i = 0; i < origin.length; i++) {
+            Assert.assertEquals(origin[i], decoder.getByte(i));
+        }
     }
 
     @Test
     public void testAes256Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
+        byte[] origin = content.clone();
         Aes aes = new Aes256Gcm();
         byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
-        byte[] encoder = aes.encoder(key, randomIv, content);
+        ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.length, content.length + aes.getTagSize());
-        byte[] decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertArrayEquals(content, decoder);
+        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        ByteBuf decoder = aes.decoder(key, randomIv, encoder);
+        Assert.assertEquals(origin.length, decoder.readableBytes());
+        for (int i = 0; i < origin.length; i++) {
+            Assert.assertEquals(origin[i], decoder.getByte(i));
+        }
     }
 
     //这是从网上找的gcm方式代码

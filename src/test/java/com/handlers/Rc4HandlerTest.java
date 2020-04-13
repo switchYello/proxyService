@@ -42,9 +42,9 @@ public class Rc4HandlerTest {
     }
 
     @Test
-    public void testRc4Speed() throws InterruptedException {
+    public void testRc4Speed() {
 
-        byte[] bytes = KeyUtil.randomBytes(10 * 1024 * 1024);
+        byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024 );
         EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
         long longs = testRc4HandlerSpeed(bytes, channel);
         /*
@@ -55,7 +55,7 @@ public class Rc4HandlerTest {
     }
 
     private long testRc4HandlerSpeed(byte[] bytes, EmbeddedChannel channel) {
-
+        byte[] origin = bytes.clone();
         long startTime = System.nanoTime();
         //写入out通道，对数据进行加密
         Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
@@ -73,7 +73,7 @@ public class Rc4HandlerTest {
             byteBufs.addComponent(true, b);
         }
 //       断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(bytes, ByteBufUtil.getBytes(byteBufs));
+        Assert.assertArrayEquals(origin, ByteBufUtil.getBytes(byteBufs));
         Assert.assertTrue(byteBufs.release());
         Assert.assertFalse(channel.finish());
         return System.nanoTime() - startTime;

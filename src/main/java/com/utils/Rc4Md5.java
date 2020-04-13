@@ -1,7 +1,11 @@
 package com.utils;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -36,20 +40,34 @@ public class Rc4Md5 implements CipherInfo {
      * 根据密码和内容加密，
      * 密码是处理好的，满足条件的
      * */
-    public byte[] encoder(byte[] password, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+    public ByteBuf encoder(byte[] password, ByteBuf content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, ShortBufferException {
         if (encoder == null) {
             encoder = Cipher.getInstance(name);
             encoder.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password, name));
         }
-        return encoder.update(content);
+        //得到的密文大小
+        int outputSize = encoder.getOutputSize(content.readableBytes());
+        //存储密文
+        ByteBuf out = content.alloc().ioBuffer(outputSize);
+        ByteBuffer outData = out.nioBuffer(0, outputSize);
+        int update = encoder.update(content.nioBuffer(), outData);
+        content.skipBytes(update);
+        out.writerIndex(update);
+        return out;
     }
 
-    public byte[] decoder(byte[] password, byte[] content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+    public ByteBuf decoder(byte[] password, ByteBuf content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, ShortBufferException {
         if (decoder == null) {
             decoder = Cipher.getInstance(name);
             decoder.init(Cipher.DECRYPT_MODE, new SecretKeySpec(password, name));
         }
-        return decoder.update(content);
+        int outputSize = decoder.getOutputSize(content.readableBytes());
+        ByteBuf out = content.alloc().ioBuffer(outputSize);
+        ByteBuffer outData = out.nioBuffer(0, outputSize);
+        int update = decoder.update(content.nioBuffer(), outData);
+        content.skipBytes(update);
+        out.writerIndex(update);
+        return out;
     }
 
     public void finishEncoder() throws BadPaddingException, IllegalBlockSizeException {

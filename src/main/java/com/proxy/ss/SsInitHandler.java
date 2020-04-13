@@ -62,7 +62,7 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
                     ctx.pipeline().remove(this);
                     break;
                 case err:
-                    in.skipBytes(in.readableBytes());
+                    in.skipBytes(actualReadableBytes());
                     break;
             }
         } catch (Signal replay) {

@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +65,13 @@ public class SsServiceHandler extends ChannelInboundHandlerAdapter {
                             ctx.pipeline().replace(ctx.name(), null, new TransferHandler(future.channel()));
                         }
                         ctx.fireChannelRead(msg);
+                    } else {
+                        ReferenceCountUtil.release(msg);
                     }
                 }
             });
         } else {
+            ReferenceCountUtil.release(msg);
             throw new RuntimeException("未知的数据类型");
         }
     }

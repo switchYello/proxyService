@@ -22,7 +22,7 @@ public class Encrypt {
     }
 
 
-    public static ChannelHandler get(String encryptMethod) {
+    public static ChannelHandler createChannelHandler(String encryptMethod) {
         HandlerFactory handlerFactory = map.get(encryptMethod);
         if (handlerFactory == null) {
             throw new RuntimeException("加密方式'" + encryptMethod + "'不支持,[" + map.keySet() + "]");

@@ -19,7 +19,7 @@ public class Main {
     private static Logger log = LoggerFactory.getLogger(Main.class);
 
     private EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-    private EventLoopGroup workGroup = new NioEventLoopGroup(1);
+    private EventLoopGroup workGroup = new NioEventLoopGroup(2);
 
     public static void main(String[] args) {
         Main main = new Main();

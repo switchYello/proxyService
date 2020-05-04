@@ -1,6 +1,7 @@
 package com.utils;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -51,11 +52,16 @@ public abstract class Aes implements CipherInfo {
                 ByteBuf out = content.alloc().ioBuffer(outputSize);
                 ByteBuffer outData = out.nioBuffer(0, outputSize);
                 //加密后的数据长度等于原始据长度 + tagLength,,返回值为outData的长度
-                int length = encoderChipher.doFinal(content.nioBuffer(), outData);
-                encodeStatus = Status.init;
-                content.skipBytes(content.readableBytes());
-                out.writerIndex(length);
-                return out;
+                try {
+                    int length = encoderChipher.doFinal(content.nioBuffer(), outData);
+                    encodeStatus = Status.init;
+                    content.skipBytes(content.readableBytes());
+                    out.writerIndex(length);
+                    return out;
+                } catch (Exception e) {
+                    ReferenceCountUtil.release(out);
+                    throw e;
+                }
             }
             default:
                 throw new RuntimeException("aes 加密器状态不正确 encodeStatus = " + encodeStatus);
@@ -82,11 +88,16 @@ public abstract class Aes implements CipherInfo {
                 int outputSize = decoderChipher.getOutputSize(encoderByte.readableBytes());
                 ByteBuf out = encoderByte.alloc().ioBuffer(outputSize);
                 ByteBuffer outData = out.nioBuffer(0, outputSize);
-                int length = decoderChipher.doFinal(encoderByte.nioBuffer(), outData);
-                decodeStatus = Status.init;
-                encoderByte.skipBytes(encoderByte.readableBytes());
-                out.writerIndex(length);
-                return out;
+                try {
+                    int length = decoderChipher.doFinal(encoderByte.nioBuffer(), outData);
+                    decodeStatus = Status.init;
+                    encoderByte.skipBytes(encoderByte.readableBytes());
+                    out.writerIndex(length);
+                    return out;
+                } catch (Exception e) {
+                    ReferenceCountUtil.release(out);
+                    throw e;
+                }
             }
             default:
                 throw new RuntimeException("aes 解密器状态不正确 decodeStatus = " + decodeStatus);

@@ -1,7 +1,7 @@
 package com.utils;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.util.ReferenceCountUtil;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
@@ -49,11 +49,16 @@ public class Rc4Md5 implements CipherInfo {
         int outputSize = encoder.getOutputSize(content.readableBytes());
         //存储密文
         ByteBuf out = content.alloc().ioBuffer(outputSize);
-        ByteBuffer outData = out.nioBuffer(0, outputSize);
-        int update = encoder.update(content.nioBuffer(), outData);
-        content.skipBytes(update);
-        out.writerIndex(update);
-        return out;
+        try {
+            ByteBuffer outData = out.nioBuffer(0, outputSize);
+            int update = encoder.update(content.nioBuffer(), outData);
+            content.skipBytes(update);
+            out.writerIndex(update);
+            return out;
+        } catch (Exception e) {
+            ReferenceCountUtil.release(out);
+            throw e;
+        }
     }
 
     public ByteBuf decoder(byte[] password, ByteBuf content) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, ShortBufferException {
@@ -63,11 +68,16 @@ public class Rc4Md5 implements CipherInfo {
         }
         int outputSize = decoder.getOutputSize(content.readableBytes());
         ByteBuf out = content.alloc().ioBuffer(outputSize);
-        ByteBuffer outData = out.nioBuffer(0, outputSize);
-        int update = decoder.update(content.nioBuffer(), outData);
-        content.skipBytes(update);
-        out.writerIndex(update);
-        return out;
+        try {
+            ByteBuffer outData = out.nioBuffer(0, outputSize);
+            int update = decoder.update(content.nioBuffer(), outData);
+            content.skipBytes(update);
+            out.writerIndex(update);
+            return out;
+        } catch (Exception e) {
+            ReferenceCountUtil.release(out);
+            throw e;
+        }
     }
 
     public void finishEncoder() throws BadPaddingException, IllegalBlockSizeException {

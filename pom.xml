@@ -117,7 +117,13 @@
                 </executions>
             </plugin>
         </plugins>
-
-
+        <resources>
+            <resource>
+                <directory>resources</directory>
+                <excludes>
+                    <exclude>logback-test.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
 </project>

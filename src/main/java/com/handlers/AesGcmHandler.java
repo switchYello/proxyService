@@ -10,13 +10,17 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 import static com.handlers.AesGcmHandler.DecoderStatus.*;
 
 public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
 
+    private static final Logger log = LoggerFactory.getLogger(AesGcmHandler.class);
     private Aes aes;
     private String password = "";
 
@@ -109,9 +113,7 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
                 }
                 ByteBuf payloadLenTagAndLen = in.readSlice(2 + aes.getTagSize());
                 //解密并获取数据长度
-                ByteBuf decoder = aes.decoder(decodeKey, getDecodeNonce(), payloadLenTagAndLen);
-                dataLength = decoder.readShort();
-                ReferenceCountUtil.release(decoder);
+                dataLength = decodeDateLength(payloadLenTagAndLen);
 
                 if (dataLength > limitDataLength) {
                     //这里长度超过限制，说明数据错误的，忽略接下来的所有数据
@@ -136,6 +138,18 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
             }
         }
     }
+
+    private short decodeDateLength(ByteBuf payloadLenTagAndLen) throws GeneralSecurityException {
+        ByteBuf decoder = null;
+        try {
+            decoder = aes.decoder(decodeKey, getDecodeNonce(), payloadLenTagAndLen);
+            return decoder.readShort();
+        } finally {
+            if (decoder != null)
+                ReferenceCountUtil.release(decoder);
+        }
+    }
+
 
     //读取指定长度的byte[],并让读索引前进指定长度位
     private byte[] readByte(ByteBuf in, int length) {
@@ -166,5 +180,6 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         checkDecoderStatus(DecoderStatus.ERR);
+        log.error("", cause);
     }
 }

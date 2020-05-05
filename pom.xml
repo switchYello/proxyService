@@ -89,6 +89,9 @@
                             <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                     </archive>
+                    <excludes>
+                        <exclude>logback-test.xml</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 
@@ -117,13 +120,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>logback-test.xml</exclude>
-                </excludes>
-            </resource>
-        </resources>
     </build>
 </project>

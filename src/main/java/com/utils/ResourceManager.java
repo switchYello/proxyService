@@ -1,5 +1,6 @@
 package com.utils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -11,15 +12,14 @@ public class ResourceManager {
 
     public static InputStream gerResourceForFile(String fileName) throws FileNotFoundException {
 
-        InputStream in = null;
+        InputStream in;
         ClassLoader classLoader = ResourceManager.class.getClassLoader();
         ClassLoader loader = classLoader == null ? ClassLoader.getSystemClassLoader() : classLoader;
-
-        if (loader != null) {
-            in = loader.getResourceAsStream(fileName);
-        }
-        if (in == null) {
+        //如果文件存在则优先使用fileInputStream
+        if (new File(fileName).exists()) {
             in = new FileInputStream(fileName);
+        } else {
+            in = loader.getResourceAsStream(fileName);
         }
         return in;
     }

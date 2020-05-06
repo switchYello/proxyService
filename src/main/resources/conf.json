@@ -4,7 +4,7 @@
     "mode": "ss",
     "localPort": 9089,
     "passWord": "a",
-    "encrypt": "rc4-md5",
+    "encrypt": "aes-192-gcm",
     "des": "ss",
     "enable": true
   },
@@ -15,6 +15,6 @@
     "serverPort": 9089,
     "localPort": 9090,
     "des": "TC服务",
-    "enable": true
+    "enable": false
   }
 ]

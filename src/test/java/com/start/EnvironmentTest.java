@@ -12,7 +12,7 @@ public class EnvironmentTest {
 
     @Test
     public void getConfs() {
-        List<Conf> confs = Environment.getConfs();
+        List<Conf> confs = Environment.loadConfs();
         for (Conf value : confs) {
             assertNotNull(value.getName());
             assertNotNull(value.getMode());

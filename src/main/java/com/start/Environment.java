@@ -31,16 +31,14 @@ public class Environment {
             while ((temp = read.readLine()) != null) {
                 sb.append(temp);
             }
-            confs = new ObjectMapper().readValue(sb.toString(), new TypeReference<List<Conf>>() {
-            });
-
+            confs = new ObjectMapper().readValue(sb.toString(), new TypeReference<List<Conf>>() {});
         } catch (IOException e) {
             throw new RuntimeException("读取配置文件异常", e);
         }
     }
 
 
-    public static List<Conf> getConfs() {
+    public static List<Conf> loadConfs() {
         return confs;
     }
 

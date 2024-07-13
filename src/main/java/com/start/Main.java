@@ -5,6 +5,7 @@ import com.proxy.forwarder.ForwarderInitializer;
 import com.proxy.ss.SsInitializer;
 import com.utils.Conf;
 import com.utils.SuccessFutureListener;
+import com.utils.Symbols;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -24,15 +25,15 @@ public class Main {
     public static void main(String[] args) {
         Main main = new Main();
         try {
-            for (Conf conf : Environment.getConfs()) {
+            for (Conf conf : Environment.loadConfs()) {
                 if (!conf.getEnable()) {
                     continue;
                 }
                 switch (conf.getMode()) {
-                    case "ss":
+                    case Symbols.SS:
                         main.startSsMode(conf);
                         break;
-                    case "forward":
+                    case Symbols.FORWARD:
                         main.startForwardMode(conf);
                         break;
                     default:
@@ -43,22 +44,12 @@ public class Main {
             log.info("main方法报错", e);
             main.close();
         }
-
     }
 
     //启动ss服务器端
     private void startSsMode(final Conf conf) {
         ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workGroup)
-                .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_RCVBUF, 32 * 1024)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
-                .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                .childOption(ChannelOption.AUTO_READ, false)
-                .childOption(ChannelOption.TCP_NODELAY,true)
-                .childAttr(Conf.conf_key, conf)
-                .childHandler(SsInitializer.INSTANCE);
+        b.group(bossGroup, workGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_RCVBUF, 32 * 1024).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000).childOption(ChannelOption.SO_RCVBUF, 128 * 1024).childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000).childOption(ChannelOption.AUTO_READ, false).childOption(ChannelOption.TCP_NODELAY, true).childAttr(Conf.conf_key, conf).childHandler(SsInitializer.INSTANCE);
         ChannelFuture f = b.bind("0.0.0.0", conf.getLocalPort());
         f.addListener(new SuccessFutureListener<Void>() {
             @Override
@@ -76,16 +67,7 @@ public class Main {
 
     private void startForwardMode(final Conf conf) {
         ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workGroup)
-                .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_RCVBUF, 32 * 1024)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
-                .childOption(ChannelOption.AUTO_READ, false)
-                .childAttr(Conf.conf_key, conf)
-                .childHandler(ForwarderInitializer.INSTANCE);
+        b.group(bossGroup, workGroup).channel(NioServerSocketChannel.class).option(ChannelOption.SO_RCVBUF, 32 * 1024).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000).childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, 6000).childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.SO_RCVBUF, 128 * 1024).childOption(ChannelOption.AUTO_READ, false).childAttr(Conf.conf_key, conf).childHandler(ForwarderInitializer.INSTANCE);
         ChannelFuture f = b.bind("0.0.0.0", conf.getLocalPort());
         f.addListener(new SuccessFutureListener<Void>() {
             @Override

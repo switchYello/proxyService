@@ -3,9 +3,10 @@ package com.handlers;
 import com.utils.KeyUtil;
 import io.netty.buffer.*;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /*
 以下摘自ss官网，稍微修改
@@ -34,7 +35,7 @@ UDP 和tcp一样
 public class Rc4HandlerTest {
 
     /*不参与测试，热机用的*/
-    @Before
+    @BeforeEach
     public void a1hotVm() {
         byte[] bytes = KeyUtil.randomBytes(2 * 1024 * 1024);
         EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
@@ -58,7 +59,7 @@ public class Rc4HandlerTest {
         byte[] origin = bytes.clone();
         long startTime = System.nanoTime();
         //写入out通道，对数据进行加密
-        Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
+        Assertions.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
         //将数据读出，分片成多个
         //将加密的数据重新写入inBound,进行解密
         Object o;
@@ -73,9 +74,9 @@ public class Rc4HandlerTest {
             byteBufs.addComponent(true, b);
         }
 //       断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(origin, ByteBufUtil.getBytes(byteBufs));
-        Assert.assertTrue(byteBufs.release());
-        Assert.assertFalse(channel.finish());
+        Assertions.assertArrayEquals(origin, ByteBufUtil.getBytes(byteBufs));
+        Assertions.assertTrue(byteBufs.release());
+        Assertions.assertFalse(channel.finish());
         return System.nanoTime() - startTime;
     }
 

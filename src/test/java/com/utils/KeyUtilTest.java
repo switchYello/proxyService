@@ -1,11 +1,12 @@
 package com.utils;
 
 import com.google.crypto.tink.subtle.Hkdf;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.security.GeneralSecurityException;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 
 public class KeyUtilTest {
 

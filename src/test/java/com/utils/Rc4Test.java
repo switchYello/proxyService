@@ -1,14 +1,16 @@
 package com.utils;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import javax.crypto.*;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -30,13 +32,13 @@ public class Rc4Test {
             ByteBuf origin = data.duplicate();
 
             ByteBuf outData = rc4Md5.encoder(key, data);
-            Assert.assertEquals(origin.readableBytes(),outData.readableBytes());
+            Assertions.assertEquals(origin.readableBytes(), outData.readableBytes());
 
             ByteBuf decoder = rc4Md5.decoder(key, outData);
-            Assert.assertEquals(origin.readableBytes(),decoder.readableBytes());
+            Assertions.assertEquals(origin.readableBytes(), decoder.readableBytes());
 
-            for(int index = decoder.readerIndex();index<decoder.writerIndex();index++){
-                Assert.assertEquals(origin.getByte(index),decoder.getByte(index));
+            for (int index = decoder.readerIndex(); index < decoder.writerIndex(); index++) {
+                Assertions.assertEquals(origin.getByte(index), decoder.getByte(index));
             }
         }
         rc4Md5.finishDecoder();
@@ -68,7 +70,7 @@ public class Rc4Test {
         byte[] update1 = decoder.update(update);
 
         //加密在解密后和原文一致
-        Assert.assertEquals(content, new String(update1, StandardCharsets.UTF_8));
+        Assertions.assertEquals(content, new String(update1, StandardCharsets.UTF_8));
 
         //因为是流加密，只要不关闭，encoder decoder对象可以一直使用
         String content2 = randomString(50);
@@ -77,7 +79,7 @@ public class Rc4Test {
         //解密后
         byte[] de = decoder.update(en);
         //加密在解密后和原文一致
-        Assert.assertEquals(content2, new String(de, StandardCharsets.UTF_8));
+        Assertions.assertEquals(content2, new String(de, StandardCharsets.UTF_8));
 
     }
 

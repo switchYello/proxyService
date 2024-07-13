@@ -3,8 +3,8 @@ package com.utils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -25,11 +25,11 @@ public class AesTest {
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        Assertions.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
         ByteBuf decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertEquals(origin.length, decoder.readableBytes());
+        Assertions.assertEquals(origin.length, decoder.readableBytes());
         for (int i = 0; i < origin.length; i++) {
-            Assert.assertEquals(origin[i], decoder.getByte(i));
+            Assertions.assertEquals(origin[i], decoder.getByte(i));
         }
     }
 
@@ -42,11 +42,11 @@ public class AesTest {
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        Assertions.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
         ByteBuf decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertEquals(origin.length, decoder.readableBytes());
+        Assertions.assertEquals(origin.length, decoder.readableBytes());
         for (int i = 0; i < origin.length; i++) {
-            Assert.assertEquals(origin[i], decoder.getByte(i));
+            Assertions.assertEquals(origin[i], decoder.getByte(i));
         }
     }
 
@@ -59,11 +59,11 @@ public class AesTest {
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
         //加密后的数据长度等于 原始长度 + tagLength
-        Assert.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
+        Assertions.assertEquals(encoder.readableBytes(), content.length + aes.getTagSize());
         ByteBuf decoder = aes.decoder(key, randomIv, encoder);
-        Assert.assertEquals(origin.length, decoder.readableBytes());
+        Assertions.assertEquals(origin.length, decoder.readableBytes());
         for (int i = 0; i < origin.length; i++) {
-            Assert.assertEquals(origin[i], decoder.getByte(i));
+            Assertions.assertEquals(origin[i], decoder.getByte(i));
         }
     }
 

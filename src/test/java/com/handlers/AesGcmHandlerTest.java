@@ -6,8 +6,8 @@ import com.utils.Aes256Gcm;
 import com.utils.KeyUtil;
 import io.netty.buffer.*;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * hcy 2019/11/17
@@ -81,7 +81,7 @@ public class AesGcmHandlerTest {
         byte[] origint = bytes.clone();
         long startTime = System.nanoTime();
         //写入out通道，对数据进行加密
-        Assert.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
+        Assertions.assertTrue(channel.writeOutbound(Unpooled.wrappedBuffer(bytes)));
         //将数据读出，分片成多个
         //将加密的数据重新写入inBound,进行解密
         Object o;
@@ -96,9 +96,9 @@ public class AesGcmHandlerTest {
             byteBufs.addComponent(true, b);
         }
         //断言解密后的数据和原数据相同
-        Assert.assertArrayEquals(origint, ByteBufUtil.getBytes(byteBufs));
-        Assert.assertTrue(byteBufs.release());
-        Assert.assertFalse(channel.finish());
+        Assertions.assertArrayEquals(origint, ByteBufUtil.getBytes(byteBufs));
+        Assertions.assertTrue(byteBufs.release());
+        Assertions.assertFalse(channel.finish());
         if (name != null) {
             System.out.println(name + "encoder decoder speed:" + bytes.length * 1000.0 / (System.nanoTime() - startTime) + "MB/s");
         }

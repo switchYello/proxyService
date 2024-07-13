@@ -1,7 +1,7 @@
 package com.handlers;
 
 import com.start.Environment;
-import com.utils.Aes;
+import com.utils.AbstractAesGcm;
 import com.utils.Conf;
 import com.utils.KeyUtil;
 import io.netty.buffer.ByteBuf;
@@ -21,10 +21,10 @@ import static com.handlers.AesGcmHandler.DecoderStatus.*;
 public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
 
     private static final Logger log = LoggerFactory.getLogger(AesGcmHandler.class);
-    private Aes aes;
+    private AbstractAesGcm aes;
     private String password = "";
 
-    public AesGcmHandler(Aes aes) {
+    public AesGcmHandler(AbstractAesGcm aes) {
         this.aes = aes;
     }
 

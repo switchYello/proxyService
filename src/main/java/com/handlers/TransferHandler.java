@@ -64,7 +64,7 @@ public class TransferHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ChannelUtil.closeOnFlush(outChannel);
+        ChannelUtil.flushAndClose(outChannel);
         super.channelInactive(ctx);
     }
 

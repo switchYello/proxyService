@@ -3,7 +3,7 @@ package com.utils;
 /**
  * hcy 2019/11/17
  */
-public class Aes256Gcm extends Aes {
+public class Aes256Gcm extends AbstractAesGcm {
 
 
     @Override

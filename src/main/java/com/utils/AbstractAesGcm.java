@@ -12,7 +12,7 @@ import java.security.GeneralSecurityException;
 /**
  * hcy 2019/11/17
  */
-public abstract class Aes implements CipherInfo {
+public abstract class AbstractAesGcm implements CipherInfo {
 
     private static String algorithm = "AES/GCM/PKCS5Padding";
     private Cipher encoderChipher;

@@ -1,12 +1,9 @@
 package com.utils;
 
-import java.security.GeneralSecurityException;
-import java.security.Key;
-
 /**
  * hcy 2019/11/17
  */
-public class Aes192Gcm extends Aes {
+public class Aes192Gcm extends AbstractAesGcm {
 
 
 	@Override

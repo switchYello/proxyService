@@ -3,8 +3,17 @@ package com.dns;
 import com.utils.ResourceManager;
 import io.netty.channel.EventLoop;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.resolver.*;
-import io.netty.resolver.dns.*;
+import io.netty.resolver.AddressResolver;
+import io.netty.resolver.AddressResolverGroup;
+import io.netty.resolver.HostsFileEntries;
+import io.netty.resolver.HostsFileEntriesResolver;
+import io.netty.resolver.HostsFileParser;
+import io.netty.resolver.ResolvedAddressTypes;
+import io.netty.resolver.dns.DnsNameResolver;
+import io.netty.resolver.dns.DnsNameResolverBuilder;
+import io.netty.resolver.dns.DnsServerAddressStreamProvider;
+import io.netty.resolver.dns.MultiDnsServerAddressStreamProvider;
+import io.netty.resolver.dns.SingletonDnsServerAddressStreamProvider;
 import io.netty.util.concurrent.EventExecutor;
 
 import java.io.InputStreamReader;
@@ -27,7 +36,6 @@ public class AsnycDns extends AddressResolverGroup {
     @Override
     protected AddressResolver newResolver(EventExecutor executor) {
         assertTrue(EventLoop.class.isAssignableFrom(executor.getClass()), "异步dns EventExecutor 转 EventLoop 类型不匹配");
-
         return getResolver0((EventLoop) executor).asAddressResolver();
     }
 

@@ -37,7 +37,7 @@ public class AesTest {
     public void testAes192Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
         byte[] origin = content.clone();
-        Aes aes = new Aes192Gcm();
+        AbstractAesGcm aes = new Aes192Gcm();
         byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));
@@ -54,7 +54,7 @@ public class AesTest {
     public void testAes256Gsm() throws GeneralSecurityException {
         byte[] content = KeyUtil.randomBytes(50);
         byte[] origin = content.clone();
-        Aes aes = new Aes256Gcm();
+        AbstractAesGcm aes = new Aes256Gcm();
         byte[] key = KeyUtil.createHkdfKey("abc", KeyUtil.randomBytes(aes.getSaltSize()), aes.getKeySize());
         byte[] randomIv = KeyUtil.randomBytes(aes.getNonceSize());
         ByteBuf encoder = aes.encoder(key, randomIv, Unpooled.wrappedBuffer(content));

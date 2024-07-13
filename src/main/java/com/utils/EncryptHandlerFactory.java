@@ -10,9 +10,9 @@ import java.util.Map;
 /**
  * 根据算法名称 查找加密算法handler
  */
-public class Encrypt {
+public class EncryptHandlerFactory {
 
-    private static Map<String, HandlerFactory> map = new HashMap<>();
+    private final static Map<String, HandlerFactory> map = new HashMap<>();
 
     static {
         map.put("rc4-md5", new Rc4HandlerFactory());
@@ -21,7 +21,6 @@ public class Encrypt {
         map.put("aes-256-gcm", new Aes256GcmHandlerFactory());
     }
 
-
     public static ChannelHandler createChannelHandler(String encryptMethod) {
         HandlerFactory handlerFactory = map.get(encryptMethod);
         if (handlerFactory == null) {
@@ -29,7 +28,6 @@ public class Encrypt {
         }
         return handlerFactory.createHandler();
     }
-
 
     interface HandlerFactory {
         ChannelHandler createHandler();

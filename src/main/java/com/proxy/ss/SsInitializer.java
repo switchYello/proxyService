@@ -3,7 +3,7 @@ package com.proxy.ss;
 import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
-import com.utils.Encrypt;
+import com.utils.EncryptHandlerFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
@@ -29,7 +29,7 @@ public class SsInitializer extends ChannelInitializer<Channel> {
         if (isDebug) {
             p.addLast(new LoggingHandler("ss客户端请求流 密文"));
         }
-        p.addLast(Encrypt.createChannelHandler(conf.getEncrypt()));
+        p.addLast(EncryptHandlerFactory.createChannelHandler(conf.getEncrypt()));
         if (isDebug) {
             p.addLast(new LoggingHandler("ss客户端请求流明文"));
         }

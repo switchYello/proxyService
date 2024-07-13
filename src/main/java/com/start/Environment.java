@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.utils.Conf;
 import com.utils.ResourceManager;
+import com.utils.Symbols;
 import io.netty.channel.Channel;
 
 import java.io.BufferedReader;
@@ -19,12 +20,11 @@ import java.util.Objects;
  */
 public class Environment {
 
-    private static final String CONF_NAME = "conf.json";
     private static List<Conf> confs;
 
     static {
-        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(CONF_NAME)) {
-            Objects.requireNonNull(resourceAsStream, "未发现配置文件:" + CONF_NAME);
+        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(Symbols.CONF_NAME)) {
+            Objects.requireNonNull(resourceAsStream, "未发现配置文件:" + Symbols.CONF_NAME);
             BufferedReader read = new BufferedReader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             String temp;

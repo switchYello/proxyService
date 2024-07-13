@@ -4,7 +4,7 @@
     "mode": "ss",
     "localPort": 9089,
     "passWord": "a",
-    "encrypt": "aes-192-gcm",
+    "encrypt": "aes-128-gcm",
     "des": "ss",
     "enable": true
   },

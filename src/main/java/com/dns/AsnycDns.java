@@ -9,20 +9,21 @@ import io.netty.resolver.HostsFileEntries;
 import io.netty.resolver.HostsFileEntriesResolver;
 import io.netty.resolver.HostsFileParser;
 import io.netty.resolver.ResolvedAddressTypes;
+import io.netty.resolver.dns.DefaultDnsServerAddressStreamProvider;
 import io.netty.resolver.dns.DnsNameResolver;
 import io.netty.resolver.dns.DnsNameResolverBuilder;
 import io.netty.resolver.dns.DnsServerAddressStreamProvider;
 import io.netty.resolver.dns.MultiDnsServerAddressStreamProvider;
-import io.netty.resolver.dns.SingletonDnsServerAddressStreamProvider;
 import io.netty.util.concurrent.EventExecutor;
 
 import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -40,15 +41,14 @@ public class AsnycDns extends AddressResolverGroup {
     }
 
     private DnsNameResolver getResolver0(EventLoop eventLoop) {
-        return new DnsNameResolverBuilder(eventLoop)
-                .channelType(NioDatagramChannel.class)
-                .maxQueriesPerResolve(8)
-                .optResourceEnabled(true)
-                .ndots(1)
-                .nameServerProvider(pro())
-                .resolvedAddressTypes(ResolvedAddressTypes.IPV4_PREFERRED)
-                .hostsFileEntriesResolver(new LocalHostResolver())
-                .build();
+        return new DnsNameResolverBuilder(eventLoop).channelType(NioDatagramChannel.class).maxQueriesPerResolve(8).optResourceEnabled(true).ndots(1).nameServerProvider(pro()).resolvedAddressTypes(ResolvedAddressTypes.IPV4_PREFERRED).hostsFileEntriesResolver(new LocalHostResolver()).build();
+    }
+
+    private DnsServerAddressStreamProvider pro() {
+        List<DnsServerAddressStreamProvider> list = new ArrayList<>();
+//        list.add(new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.8.8", 53)));
+        list.add(DefaultDnsServerAddressStreamProvider.INSTANCE);
+        return new MultiDnsServerAddressStreamProvider(list);
     }
 
     private static class LocalHostResolver implements HostsFileEntriesResolver {
@@ -92,12 +92,6 @@ public class AsnycDns extends AddressResolverGroup {
             InetAddress localHostResolve = localResource(inetHost, resolvedAddressTypes);
             return localHostResolve != null ? localHostResolve : hostsFileEntriesResolver.address(inetHost, resolvedAddressTypes);
         }
-    }
-
-    private DnsServerAddressStreamProvider pro() {
-        SingletonDnsServerAddressStreamProvider s1 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("8.8.8.8", 53));
-        SingletonDnsServerAddressStreamProvider s2 = new SingletonDnsServerAddressStreamProvider(new InetSocketAddress("114.114.114.114", 53));
-        return new MultiDnsServerAddressStreamProvider(s1, s2);
     }
 
     private void assertTrue(boolean instance, String msg) {

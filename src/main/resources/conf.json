@@ -2,7 +2,7 @@
   {
     "name": "conf1",
     "mode": "ss",
-    "localPort": 9089,
+    "localPort": 50001,
     "passWord": "a",
     "encrypt": "aes-128-gcm",
     "des": "ss",
@@ -11,8 +11,8 @@
   {
     "name": "conf2",
     "mode": "forward",
-    "serverHost": "127.0.0.1",
-    "serverPort": 9089,
+    "serverHost": "pay-all-dev-cluster-cluster.cluster-cctfla751ard.ap-southeast-1.rds.amazonaws.com",
+    "serverPort": 3306,
     "localPort": 9090,
     "des": "TC服务",
     "enable": false

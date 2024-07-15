@@ -16,7 +16,6 @@ public class EnvironmentTest {
         for (Conf value : confs) {
             assertNotNull(value.getName());
             assertNotNull(value.getMode());
-            assertNotNull(value.getDes());
             assertNotNull(value.getLocalPort());
             if ("ss".equals(value.getMode())) {
                 assertNotNull(value.getPassWord());

@@ -3,6 +3,7 @@ package com.proxy.forwarder;
 import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
+import com.utils.Loops;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -25,9 +26,21 @@ public class ForwardHandler implements Consumer<Connection> {
         Conf conf = Environment.getConfFromChannel(conn.channel());
         //获取客户端连接
         getConn(conf.getServerHost(), conf.getServerPort()).doOnNext(subConn -> {
+                    //从服务端连接获取数据，写入客户端
+                    conn.inbound()
+                            .receive()
+                            .retain()
+                            .concatMap(data -> subConn.outbound().sendObject(data))
+                            .then()
+                            .subscribe(subConn.disposeSubscriber());
+
                     //从客户端连接获取数据，写入服务端
-                    subConn.outbound().send(conn.inbound().receive().retain()).subscribe(conn.disposeSubscriber());
-                    conn.outbound().send(subConn.inbound().receive().retain()).subscribe(subConn.disposeSubscriber());
+                    subConn.inbound()
+                            .receive()
+                            .retain()
+                            .concatMap(data -> conn.outbound().sendObject(data))
+                            .then()
+                            .subscribe(conn.disposeSubscriber());
                 })
                 .checkpoint()
                 .then()
@@ -39,6 +52,7 @@ public class ForwardHandler implements Consumer<Connection> {
 
     static Mono<? extends Connection> getConn(String host, int port) {
         return TcpClient.newConnection()
+                .runOn(Loops.forwardLoopResources)
                 .wiretap("FORWARD-CLIENT", Environment.level, Environment.format)
                 .host(host)
                 .port(port)

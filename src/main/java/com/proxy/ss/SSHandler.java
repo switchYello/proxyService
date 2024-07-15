@@ -4,6 +4,7 @@ import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
 import com.utils.EncryptHandlerFactory;
+import com.utils.Loops;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -29,8 +30,10 @@ public class SSHandler implements Consumer<Connection> {
 
         //获取客户端连接
         getConn(conf.getServerHost(), conf.getServerPort()).doOnNext(subConn -> {
-                    //从客户端连接获取数据，写入服务端
+
                     subConn.outbound().send(conn.inbound().receive().retain()).subscribe(conn.disposeSubscriber());
+
+
                     conn.outbound().send(subConn.inbound().receive().retain()).subscribe(subConn.disposeSubscriber());
                 })
                 .checkpoint()
@@ -43,6 +46,7 @@ public class SSHandler implements Consumer<Connection> {
 
     static Mono<? extends Connection> getConn(String host, int port) {
         return TcpClient.newConnection()
+                .runOn(Loops.ssLoopResources)
                 .wiretap("FORWARD-CLIENT", Environment.level, Environment.format)
                 .host(host)
                 .port(port)

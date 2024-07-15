@@ -2,47 +2,44 @@ package com.start;
 
 
 import com.proxy.forwarder.ForwardHandler;
-import com.proxy.ss.SSHandler;
 import com.utils.Conf;
+import com.utils.Loops;
 import com.utils.Symbols;
 import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.scheduler.Schedulers;
-import reactor.netty.resources.LoopResources;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.netty.tcp.TcpServer;
+
+import java.util.List;
 
 @Slf4j
 public class Main {
-    private static LoopResources loopResources = LoopResources.create("FORWARD-SERVER");
-
     public static void main(String[] args) {
-        try {
-            for (Conf conf : Environment.loadConfs()) {
-                if (!conf.getEnable()) {
-                    continue;
-                }
-                switch (conf.getMode()) {
-                    case Symbols.SS:
-                        startSsMode(conf);
-                        log.info("启动SS成功:{}", conf);
-                        break;
-                    case Symbols.FORWARD:
-                        startForwardMode(conf);
-                        log.info("启动FORWARD成功:{}", conf);
-                        break;
-                    default:
-                        throw new RuntimeException("unKnow mode " + conf.getMode());
-                }
-            }
-        } catch (Exception e) {
-            log.info("main方法报错", e);
-        }
+        List<Conf> confs = Environment.loadConfs();
+        Flux.fromIterable(confs)
+                .filter(Conf::getEnable)
+                .flatMap(conf -> {
+                    switch (conf.getMode()) {
+                        case Symbols.SS:
+                            log.info("启动SS成功:{}", conf);
+                            return startSsMode(conf);
+                        case Symbols.FORWARD:
+                            log.info("启动FORWARD成功:{}", conf);
+                            return startForwardMode(conf);
+                        default:
+                            return Flux.error(new RuntimeException("unKnow mode " + conf.getMode()));
+                    }
+                }, confs.size())
+                .then()
+                .checkpoint()
+                .block();
     }
 
     //启动ss服务器端
-    private static void startSsMode(final Conf conf) {
+    private static Mono<Void> startSsMode(final Conf conf) {
         TcpServer ts = TcpServer.create()
-                .runOn(loopResources)
+                .runOn(Loops.ssLoopResources)
                 .option(ChannelOption.SO_RCVBUF, 32 * 1024)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
@@ -52,22 +49,22 @@ public class Main {
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();
-        ts.bindNow().onDispose().publishOn(Schedulers.boundedElastic()).block();
+        return ts.bindNow().onDispose();
     }
 
-    private static void startForwardMode(final Conf conf) {
+    private static Mono<Void> startForwardMode(final Conf conf) {
         TcpServer ts = TcpServer.create()
-                .runOn(loopResources)
+                .runOn(Loops.forwardLoopResources)
                 .option(ChannelOption.SO_RCVBUF, 32 * 1024)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
-                .doOnConnection(new SSHandler())
+                .doOnConnection(new ForwardHandler())
                 .wiretap("FORWARD-SERVER", Environment.level, Environment.format)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();
-        ts.bindNow().onDispose().publishOn(Schedulers.boundedElastic()).block();
+        return ts.bindNow().onDispose();
     }
 
 }

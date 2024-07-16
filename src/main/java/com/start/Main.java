@@ -2,6 +2,7 @@ package com.start;
 
 
 import com.proxy.forwarder.ForwardHandler;
+import com.proxy.ss.SSHandler;
 import com.utils.Conf;
 import com.utils.Loops;
 import com.utils.Symbols;
@@ -44,7 +45,7 @@ public class Main {
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
-                .doOnConnection(new ForwardHandler())
+                .doOnConnection(new SSHandler())
                 .wiretap("SS-SERVER", Environment.level, Environment.format)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());

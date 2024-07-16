@@ -2,15 +2,22 @@ package com.proxy.ss;
 
 import com.handlers.TimeOutHandler;
 import com.start.Environment;
+import com.utils.Assert;
 import com.utils.Conf;
 import com.utils.EncryptHandlerFactory;
 import com.utils.Loops;
+import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.netty.tcp.TcpClient;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author huangchaoyu
@@ -26,28 +33,56 @@ public class SSHandler implements Consumer<Connection> {
         conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
         conn.addHandlerLast(EncryptHandlerFactory.createChannelHandler(conf.getEncrypt()));
         conn.addHandlerLast(new SsInitHandler());
-        conn.addHandlerLast(new SsServiceHandler());
 
-        //获取客户端连接
-        getConn(conf.getServerHost(), conf.getServerPort()).doOnNext(subConn -> {
-
-                    subConn.outbound().send(conn.inbound().receive().retain()).subscribe(conn.disposeSubscriber());
-
-
-                    conn.outbound().send(subConn.inbound().receive().retain()).subscribe(subConn.disposeSubscriber());
-                })
+        conn.inbound()
+                .receiveObject()
+                .concatMap((Function<Object, Publisher<?>>) msg -> {
+                    /**
+                     * 第一条消息，是目标地址,此时创建客户端流
+                     * 创建成功后，绑定读取子流写入父流中
+                     */
+                    AtomicReference<Connection> subConnRef = new AtomicReference<>();
+                    if (msg instanceof InetSocketAddress) {
+                        InetSocketAddress sa = (InetSocketAddress) msg;
+                        return getConn(sa.getHostName(), sa.getPort())
+                                .doOnNext(subConn -> {
+                                    subConnRef.set(subConn);
+                                    subConn.inbound()
+                                            .receive()
+                                            .retain()
+                                            .concatMap(data -> conn.outbound().sendObject(data))
+                                            .checkpoint()
+                                            .subscribe(conn.disposeSubscriber());
+                                })
+                                .doOnError(throwable -> {
+                                    conn.dispose();
+                                    log.error("子连接获取失败:{}", sa, throwable);
+                                })
+                                .checkpoint();
+                    }
+                    /**
+                     * 第二条消息后，都是数据
+                     * concatMap 操作符保证了读取第二条消息时，连接一定创建成功状态
+                     */
+                    if (msg instanceof ByteBuf) {
+                        Assert.notNull(subConnRef.get(), "subConn is null");
+                        ReferenceCountUtil.retain(msg);
+                        return subConnRef.get().outbound().sendObject(msg);
+                    }
+                    return Mono.error(new IllegalArgumentException("未知的数据类型"));
+                }, 1)
                 .checkpoint()
                 .then()
-                .subscribe(null, throwable -> {
+                .subscribe(null, e -> {
                     conn.dispose();
-                    log.error("connection to client {}:{} fail", conf.getServerHost(), conf.getServerPort(), throwable);
+                    log.error("connection to client {}:{} fail", conf.getServerHost(), conf.getServerPort(), e);
                 });
     }
 
     static Mono<? extends Connection> getConn(String host, int port) {
         return TcpClient.newConnection()
                 .runOn(Loops.ssLoopResources)
-                .wiretap("FORWARD-CLIENT", Environment.level, Environment.format)
+                .wiretap("SS-CLIENT", Environment.level, Environment.format)
                 .host(host)
                 .port(port)
                 .connect()

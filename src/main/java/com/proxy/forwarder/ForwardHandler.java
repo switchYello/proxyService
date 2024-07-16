@@ -21,7 +21,7 @@ public class ForwardHandler implements Consumer<Connection> {
     @Override
     public void accept(Connection conn) {
         //增加超时handler
-        conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
+        conn.addHandlerLast(new TimeOutHandler(600, 600, 0));
 
         Conf conf = Environment.getConfFromChannel(conn.channel());
         //获取客户端连接

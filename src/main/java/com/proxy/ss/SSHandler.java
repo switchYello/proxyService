@@ -7,6 +7,7 @@ import com.utils.Conf;
 import com.utils.EncryptHandlerFactory;
 import com.utils.Loops;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelOption;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
@@ -34,6 +35,8 @@ public class SSHandler implements Consumer<Connection> {
         conn.addHandlerLast(EncryptHandlerFactory.createChannelHandler(conf.getEncrypt()));
         conn.addHandlerLast(new SsInitHandler());
 
+        AtomicReference<Connection> subConnRef = new AtomicReference<>();
+
         conn.inbound()
                 .receiveObject()
                 .concatMap((Function<Object, Publisher<?>>) msg -> {
@@ -41,7 +44,6 @@ public class SSHandler implements Consumer<Connection> {
                      * 第一条消息，是目标地址,此时创建客户端流
                      * 创建成功后，绑定读取子流写入父流中
                      */
-                    AtomicReference<Connection> subConnRef = new AtomicReference<>();
                     if (msg instanceof InetSocketAddress) {
                         InetSocketAddress sa = (InetSocketAddress) msg;
                         return getConn(sa.getHostName(), sa.getPort())
@@ -55,9 +57,10 @@ public class SSHandler implements Consumer<Connection> {
                                             .subscribe(conn.disposeSubscriber());
                                 })
                                 .doOnError(throwable -> {
-                                    conn.dispose();
                                     log.error("子连接获取失败:{}", sa, throwable);
+                                    conn.dispose();
                                 })
+                                .then()
                                 .checkpoint();
                     }
                     /**
@@ -70,12 +73,12 @@ public class SSHandler implements Consumer<Connection> {
                         return subConnRef.get().outbound().sendObject(msg);
                     }
                     return Mono.error(new IllegalArgumentException("未知的数据类型"));
-                }, 1)
+                }, 0)
                 .checkpoint()
                 .then()
                 .subscribe(null, e -> {
-                    conn.dispose();
                     log.error("connection to client {}:{} fail", conf.getServerHost(), conf.getServerPort(), e);
+                    conn.dispose();
                 });
     }
 
@@ -83,6 +86,7 @@ public class SSHandler implements Consumer<Connection> {
         return TcpClient.newConnection()
                 .runOn(Loops.ssLoopResources)
                 .wiretap("SS-CLIENT", Environment.level, Environment.format)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,4000)
                 .host(host)
                 .port(port)
                 .connect()

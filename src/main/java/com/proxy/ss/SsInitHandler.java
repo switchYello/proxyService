@@ -33,8 +33,9 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
 
     //开始时读取一次数据
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        ctx.read();
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+//        ctx.read();
+        super.channelActive(ctx);
     }
 
     @Override

@@ -41,11 +41,12 @@ public class Main {
     private static Mono<Void> startSsMode(final Conf conf) {
         TcpServer ts = TcpServer.create()
                 .runOn(Loops.ssLoopResources)
+                .option(ChannelOption.AUTO_READ, false)
                 .option(ChannelOption.SO_RCVBUF, 32 * 1024)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
-                .doOnConnection(new SSHandler())
+                .doOnConnection(new SSHandler()) //做handlerInit后
                 .wiretap("SS-SERVER", Environment.level, Environment.format)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());

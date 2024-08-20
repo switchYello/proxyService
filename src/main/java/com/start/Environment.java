@@ -1,50 +1,53 @@
 package com.start;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.utils.Conf;
 import com.utils.ResourceManager;
 import com.utils.Symbols;
 import io.netty.channel.Channel;
 import io.netty.handler.logging.LogLevel;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 所有配置
  */
 @Slf4j
 public class Environment {
-
-    private final static ObjectMapper mapper;
     private static List<Conf> confs;
     // 全局日志级别
     public static LogLevel level = LogLevel.INFO;
     public static AdvancedByteBufFormat format = AdvancedByteBufFormat.SIMPLE;
 
-    static {
-        mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    @Data
+    public static class ConfigWrap {
+        private List<Conf> services;
+    }
 
-        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(Symbols.CONF_NAME)) {
-            Objects.requireNonNull(resourceAsStream, "未发现配置文件:" + Symbols.CONF_NAME);
-            BufferedReader read = new BufferedReader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            String temp;
-            while ((temp = read.readLine()) != null) {
-                sb.append(temp);
+    //启动时加载配置文件
+    static {
+        Constructor c = new Constructor(new LoaderOptions());
+        c.setPropertyUtils(new PropertyUtils() {
+            @Override
+            public Property getProperty(Class<? extends Object> type, String name) {
+                setSkipMissingProperties(true);
+                return super.getProperty(type, name);
             }
-            confs = mapper.readValue(sb.toString(), new TypeReference<List<Conf>>() {
-            });
+        });
+        Yaml yaml = new Yaml(c);
+        try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(Symbols.CONF_NAME)) {
+            ConfigWrap load = yaml.loadAs(resourceAsStream, ConfigWrap.class);
+            Environment.confs = load.services;
         } catch (IOException e) {
             throw new RuntimeException("读取配置文件异常", e);
         }

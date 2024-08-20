@@ -7,7 +7,7 @@ package com.utils;
 public interface Symbols {
 
     //配置名
-    String CONF_NAME = "conf.json";
+    String CONF_NAME = "config.yaml";
 
     //SS模式
     String SS = "ss";

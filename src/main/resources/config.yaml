@@ -1,0 +1,14 @@
+services:
+  - name: ss服务
+    mode: ss
+    localPort: 9089
+    passWord: a
+    encrypt: aes-128-gcm
+    enable: true
+
+  - name: 端口转发服务
+    mode: forward
+    serverHost: 127.0.0.1
+    serverPort: 9089
+    localPort: 9090
+    enable: false

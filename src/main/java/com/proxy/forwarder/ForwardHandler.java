@@ -4,6 +4,7 @@ import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
 import com.utils.Loops;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -53,7 +54,8 @@ public class ForwardHandler implements Consumer<Connection> {
     static Mono<? extends Connection> getConn(String host, int port) {
         return TcpClient.newConnection()
                 .runOn(Loops.forwardLoopResources)
-                .wiretap("FORWARD-CLIENT", Environment.level, Environment.format)
+                .wiretap("FORWARD-CLIENT", Environment.LEVEL, Environment.FORMAT)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, Environment.GLOBAL_TIMEOUT)
                 .host(host)
                 .port(port)
                 .connect()

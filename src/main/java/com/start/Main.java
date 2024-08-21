@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        List<Conf> confs = Environment.loadConfs();
+        List<Conf> confs = Environment.getConfs();
         Flux.fromIterable(confs)
                 .filter(Conf::getEnable)
                 .flatMap(conf -> {
@@ -51,7 +51,7 @@ public class Main {
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
                 .doOnConnection(new SsDataHandler()) //做handlerInit后
-                .wiretap("SS-SERVER", Environment.level, Environment.format)
+                .wiretap("SS-SERVER", Environment.LEVEL, Environment.FORMAT)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();
@@ -66,7 +66,7 @@ public class Main {
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
                 .doOnConnection(new ForwardHandler())
-                .wiretap("FORWARD-SERVER", Environment.level, Environment.format)
+                .wiretap("FORWARD-SERVER", Environment.LEVEL, Environment.FORMAT)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();
@@ -81,7 +81,7 @@ public class Main {
                 .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
                 .childAttr(Conf.CONF_KEY, conf)
                 .doOnConnection(new HttpProxyDataHandler())
-                .wiretap("HTTP-PROXY-SERVER", Environment.level, Environment.format)
+                .wiretap("HTTP-PROXY-SERVER", Environment.LEVEL, Environment.FORMAT)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();

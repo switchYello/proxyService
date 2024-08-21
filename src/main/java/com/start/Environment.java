@@ -17,20 +17,24 @@ import reactor.netty.transport.logging.AdvancedByteBufFormat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 所有配置
  */
 @Slf4j
 public class Environment {
-    private static List<Conf> confs;
     // 全局日志级别
-    public static LogLevel level = LogLevel.INFO;
-    public static AdvancedByteBufFormat format = AdvancedByteBufFormat.SIMPLE;
+    public static LogLevel LEVEL = LogLevel.INFO;
+    public static AdvancedByteBufFormat FORMAT = AdvancedByteBufFormat.SIMPLE;
+    public static int GLOBAL_TIMEOUT = 5000;
+
+    private static List<Conf> confs;
 
     @Data
     public static class ConfigWrap {
         private List<Conf> services;
+        private Map<String, String> logger;
     }
 
     //启动时加载配置文件
@@ -47,19 +51,23 @@ public class Environment {
         try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(Symbols.CONF_NAME)) {
             ConfigWrap load = yaml.loadAs(resourceAsStream, ConfigWrap.class);
             Environment.confs = load.services;
+            //日志级别
+            if (load.logger != null) {
+                if (load.logger.containsKey("level")) {
+                    LEVEL = LogLevel.valueOf(load.logger.get("level"));
+                    log.info("设置日志级别:{}", LEVEL);
+                }
+                if (load.logger.containsKey("format")) {
+                    FORMAT = AdvancedByteBufFormat.valueOf(load.logger.get("format"));
+                    log.info("设置日志格式:{}", FORMAT);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException("读取配置文件异常", e);
         }
     }
 
-    static {
-        if (log.isDebugEnabled()) {
-            level = LogLevel.DEBUG;
-            format = AdvancedByteBufFormat.HEX_DUMP;
-        }
-    }
-
-    public static List<Conf> loadConfs() {
+    public static List<Conf> getConfs() {
         return confs;
     }
 

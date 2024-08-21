@@ -126,8 +126,8 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
     static Mono<? extends Connection> getConn(String host, int port) {
         return TcpClient.newConnection()
                 .runOn(Loops.httpLoopResources)
-                .wiretap("HTTp-PROXY-CLIENT", Environment.level, Environment.format)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 4000)
+                .wiretap("HTTP-PROXY-CLIENT", Environment.LEVEL, Environment.FORMAT)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, Environment.GLOBAL_TIMEOUT)
                 .host(host)
                 .port(port)
                 .connect()

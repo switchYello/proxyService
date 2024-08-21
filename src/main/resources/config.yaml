@@ -1,10 +1,10 @@
 services:
   - name: ss服务
     mode: ss
-    localPort: 9089
+    localPort: 30005
     passWord: a
     encrypt: aes-128-gcm
-    enable: false
+    enable: true
 
   - name: 端口转发服务
     mode: forward
@@ -18,4 +18,4 @@ services:
     localPort: 9999
     userName: a
     passWord: a
-    enable: true
+    enable: false

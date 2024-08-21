@@ -32,8 +32,6 @@ import java.util.Map;
  */
 public class AsnycDns extends AddressResolverGroup {
 
-    public static AsnycDns INSTANCE = new AsnycDns();
-
     @Override
     protected AddressResolver newResolver(EventExecutor executor) {
         assertTrue(EventLoop.class.isAssignableFrom(executor.getClass()), "异步dns EventExecutor 转 EventLoop 类型不匹配");
@@ -41,7 +39,15 @@ public class AsnycDns extends AddressResolverGroup {
     }
 
     private DnsNameResolver getResolver0(EventLoop eventLoop) {
-        return new DnsNameResolverBuilder(eventLoop).channelType(NioDatagramChannel.class).maxQueriesPerResolve(8).optResourceEnabled(true).ndots(1).nameServerProvider(pro()).resolvedAddressTypes(ResolvedAddressTypes.IPV4_PREFERRED).hostsFileEntriesResolver(new LocalHostResolver()).build();
+        return new DnsNameResolverBuilder(eventLoop)
+                .channelType(NioDatagramChannel.class)
+                .maxQueriesPerResolve(8)
+                .optResourceEnabled(true)
+                .ndots(1)
+                .nameServerProvider(pro())
+                .resolvedAddressTypes(ResolvedAddressTypes.IPV4_PREFERRED)
+                .hostsFileEntriesResolver(new LocalHostResolver())
+                .build();
     }
 
     private DnsServerAddressStreamProvider pro() {

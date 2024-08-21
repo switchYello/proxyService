@@ -52,7 +52,7 @@ services:
 ## 启动方式
 程序不占内存，如果oom了可以适当调大点
 ```shell
-nohup java -Xmn20M -Xmx30M -jar proxy.jar &
+nohup java -Xmn20M -Xmx30M -jar proxyService-1.0.jar &
 ```
 
 

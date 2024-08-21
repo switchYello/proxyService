@@ -2,6 +2,7 @@ package com.start;
 
 
 import com.proxy.forwarder.ForwardHandler;
+import com.proxy.httpproxy.HttpProxyDataHandler;
 import com.proxy.ss.SsDataHandler;
 import com.utils.Conf;
 import com.utils.Loops;
@@ -28,6 +29,9 @@ public class Main {
                         case Symbols.FORWARD:
                             log.info("启动FORWARD成功:{}", conf);
                             return startForwardMode(conf);
+                        case Symbols.HTTP_PROXY:
+                            log.info("启动HTTP_PROXY成功:{}", conf);
+                            return startHttpMode(conf);
                         default:
                             return Flux.error(new RuntimeException("unKnow mode " + conf.getMode()));
                     }
@@ -63,6 +67,21 @@ public class Main {
                 .childAttr(Conf.CONF_KEY, conf)
                 .doOnConnection(new ForwardHandler())
                 .wiretap("FORWARD-SERVER", Environment.level, Environment.format)
+                .host("0.0.0.0")
+                .port(conf.getLocalPort());
+        ts.warmup().block();
+        return ts.bindNow().onDispose();
+    }
+
+    private static Mono<Void> startHttpMode(final Conf conf) {
+        TcpServer ts = TcpServer.create()
+                .runOn(Loops.httpLoopResources)
+                .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.SO_RCVBUF, 128 * 1024)
+                .childAttr(Conf.CONF_KEY, conf)
+                .doOnConnection(new HttpProxyDataHandler())
+                .wiretap("HTTP-PROXY-SERVER", Environment.level, Environment.format)
                 .host("0.0.0.0")
                 .port(conf.getLocalPort());
         ts.warmup().block();

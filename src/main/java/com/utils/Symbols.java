@@ -15,5 +15,8 @@ public interface Symbols {
     //FORWARD模式
     String FORWARD = "forward";
 
+    //HTTP代理模式
+    String HTTP_PROXY = "http_proxy";
+
 
 }

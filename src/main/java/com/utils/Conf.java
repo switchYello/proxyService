@@ -17,7 +17,8 @@ public class Conf {
 
     private String serverHost; //  透传
     private Integer serverPort;//  透传
-    private String passWord; // ss
+    private String userName; // http代理
+    private String passWord; // ss +http代理
     private String encrypt; // ss
 
 }

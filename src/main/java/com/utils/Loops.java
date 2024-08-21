@@ -12,5 +12,6 @@ public class Loops {
 
     public static final LoopResources forwardLoopResources = LoopResources.create("FORWARD-SERVER", 1, 1, true);
 
+    public static final LoopResources httpLoopResources = LoopResources.create("HTTP-PROXY-SERVER", 1, 1, true);
 
 }

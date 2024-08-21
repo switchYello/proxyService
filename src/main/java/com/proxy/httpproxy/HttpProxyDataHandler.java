@@ -2,6 +2,7 @@ package com.proxy.httpproxy;
 
 import com.handlers.TimeOutHandler;
 import com.start.Environment;
+import com.utils.Conf;
 import com.utils.Loops;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -20,6 +21,7 @@ import reactor.netty.Connection;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
@@ -33,66 +35,42 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
         INIT, TRANS
     }
 
-    Connection rightConn;
-    InetSocketAddress targetAddress;
-    Step step = Step.INIT;
-
-
-    private void changeStep(Step step) {
-        this.step = step;
-    }
-
     @Override
     public void accept(Connection leftConn) {
+        Conf conf = Environment.getConfFromChannel(leftConn.channel());
         leftConn.addHandlerLast(new TimeOutHandler(600, 600, 0)); //增加超时handler
         leftConn.addHandlerLast("httpcode", new HttpServerCodec()); // 解析解码http请求，编码http响应，提供聚合能力
         leftConn.addHandlerLast("objectAggregator", new HttpObjectAggregator(1024 * 1024));
-        leftConn.addHandlerLast(LoginHandler.INSTANCE); //登陆密码验证
+        leftConn.addHandlerLast(new LoginHandler(conf.getUserName(), conf.getPassWord())); //登陆密码验证
 
-        leftConn.inbound().receive().concatMap(msg -> {
-                    switch (step) {
+        AtomicReference<Connection> rightConn = new AtomicReference<>();
+        AtomicReference<Step> step = new AtomicReference<>(Step.INIT);
+        leftConn.inbound().receiveObject().concatMap(msg -> {
+                    //初始加一次引用，注意释放
+                    ReferenceCountUtil.retain(msg);
+                    switch (step.get()) {
                         case INIT: {
                             FullHttpRequest req = (FullHttpRequest) msg;
-                            targetAddress = resolveHostPort(req.headers().get("Host"));
+                            InetSocketAddress targetAddress = resolveHostPort(req.headers().get("Host"));
                             //连接目标地址
-                            return getConn(targetAddress.getHostName(), targetAddress.getPort()).doOnNext(sub -> {
-                                this.rightConn = sub;
-                        /*
-                          https的情况,响应客户端的代理请求，后续都是透传因此移除http相关的handler
-                         */
-                                if (HttpMethod.CONNECT.equals(req.method())) {
-                                    FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(200, "OK"));
-                                    leftConn.outbound().sendObject(resp).then(Mono.fromRunnable(() -> {
-                                        leftConn.removeHandler("httpcode");
-                                        leftConn.removeHandler("objectAggregator");
-                                    }));
-                                }
-                        /*
-                          http的情况，将原包转发给客户端，后续同样都是转发
-                         */
-                                else {
-                                    req.headers().remove("Proxy-Authorization").remove("Proxy-Connection").add("Connection", "keep-alive");
-                                    rightConn.addHandlerLast("httpRequestEncoder", new HttpRequestEncoder());
-                                    rightConn.outbound().sendObject(req).then(Mono.fromRunnable(() -> {
-                                        rightConn.removeHandler("httpRequestEncoder");
-                                        leftConn.removeHandler("httpcode");
-                                        leftConn.removeHandler("objectAggregator");
-                                    }));
-                                }
-
+                            return getConn(targetAddress.getHostName(), targetAddress.getPort()).flatMap(sub -> {
+                                rightConn.set(sub);
                                 //绑定右侧数据到左侧
-                                rightConn.inbound()
+                                rightConn.get().inbound()
                                         .receive()
                                         .retain()
                                         .concatMap(data -> leftConn.outbound().sendObject(data), 0)
                                         .checkpoint()
                                         .subscribe(leftConn.disposeSubscriber());
-                                changeStep(Step.TRANS);
+                                //响应左侧,并切换到传输状态
+                                return responseLeft(leftConn, sub, req).doFinally(st -> step.set(Step.TRANS));
+                            }).doOnError(throwable -> {
+                                log.error("子连接获取失败:{}", targetAddress, throwable);
                             });
                         }
                         case TRANS: {
-                            ReferenceCountUtil.retain(msg);
-                            return rightConn.outbound().sendObject(msg);
+                            log.debug("message typ:{}", msg);
+                            return rightConn.get().outbound().sendObject(msg);
                         }
                         default:
                             return Mono.error(new IllegalArgumentException("未知状态"));
@@ -104,6 +82,33 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
                     log.error("http proxy connection to client fail", e);
                     leftConn.dispose();
                 });
+    }
+
+    private Mono<Void> responseLeft(Connection leftConn, Connection rightConn, FullHttpRequest req) {
+        /*
+          https的情况,响应客户端的代理请求，后续都是透传因此移除http相关的handler
+         */
+        if (HttpMethod.CONNECT.equals(req.method())) {
+            ReferenceCountUtil.release(req);
+            FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, new HttpResponseStatus(200, "OK"));
+            return leftConn.outbound().sendObject(resp)
+                    .then(Mono.fromRunnable(() -> {
+                        leftConn.removeHandler("httpcode");
+                        leftConn.removeHandler("objectAggregator");
+                    })).then();
+        }
+        /*
+          http的情况，将原包转发给客户端，后续同样都是转发
+         */
+        else {
+            req.headers().remove("Proxy-Authorization").remove("Proxy-Connection").add("Connection", "keep-alive");
+            rightConn.addHandlerLast("httpRequestEncoder", new HttpRequestEncoder());
+            return rightConn.outbound().sendObject(req.retain()).then(Mono.fromRunnable(() -> {
+                rightConn.removeHandler("httpRequestEncoder");
+                leftConn.removeHandler("httpcode");
+                leftConn.removeHandler("objectAggregator");
+            })).then();
+        }
     }
 
 
@@ -119,6 +124,13 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
     }
 
     static Mono<? extends Connection> getConn(String host, int port) {
-        return TcpClient.newConnection().runOn(Loops.ssLoopResources).wiretap("HTTp-PROXY-CLIENT", Environment.level, Environment.format).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 4000).host(host).port(port).connect().single();
+        return TcpClient.newConnection()
+                .runOn(Loops.httpLoopResources)
+                .wiretap("HTTp-PROXY-CLIENT", Environment.level, Environment.format)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 4000)
+                .host(host)
+                .port(port)
+                .connect()
+                .single();
     }
 }

@@ -22,12 +22,9 @@ public class PasswordChecker {
 
     private static String proxyHead = "Proxy-Authorization";
     private static String hostHead = "Host";
-    //http代理认证帐号密码
-    private static String realUserName = "username";
-    private static String realPassword = "pass123";
 
     //digest方式登录
-    public static boolean digestLogin(HttpRequest req) {
+    public static boolean digestLogin(HttpRequest req, String realUserName, String realPassword) {
         String s = req.headers().get(proxyHead);
         String host = req.headers().get(hostHead);
         if (s == null) {
@@ -45,7 +42,7 @@ public class PasswordChecker {
                 String[] kv = param.split("=", 2);
                 map.put(kv[0].trim(), kv[1].trim().replaceAll("\"", ""));
             }
-            return degestCheck(map, req.method().toString());
+            return degestCheck(map, req.method().toString(), realUserName, realPassword);
         } catch (Exception e) {
             log.error("digestLogin 验证不通过", e);
             return false;
@@ -53,7 +50,7 @@ public class PasswordChecker {
     }
 
     //basic方式登录
-    public static boolean basicLogin(HttpRequest req) {
+    public static boolean basicLogin(HttpRequest req, String realUserName, String realPassword) {
         String s = req.headers().get(proxyHead);
         if (s == null) {
             return false;
@@ -63,7 +60,7 @@ public class PasswordChecker {
             byte[] decode = Base64.decodeBase64(split[1]);
             String userNamePassWord = new String(decode);
             String[] split1 = userNamePassWord.split(":", 2);
-            return basicCheck(split1[0], split1[1]);
+            return basicCheck(split1[0], split1[1], realUserName, realPassword);
         } catch (Exception e) {
             log.error("basicLogin 验证不通过", e);
             return false;
@@ -87,12 +84,12 @@ public class PasswordChecker {
 
 
     //使用basic的方式判断账号密码对不对
-    private static boolean basicCheck(String userName, String passWord) {
+    private static boolean basicCheck(String userName, String passWord, String realUserName, String realPassword) {
         return realUserName.equals(userName) && realPassword.equals(passWord);
     }
 
     //使用degest的方式验证密码
-    private static boolean degestCheck(Map<String, String> map, String method) {
+    private static boolean degestCheck(Map<String, String> map, String method, String realUserName, String realPassword) {
         String h1 = realUserName + ":" + map.get("realm") + ":" + realPassword;
         String h2 = method + ":" + map.get("uri");
         String s = md5(md5(h1) + ":" + map.get("nonce") + ":" + map.get("nc") + ":" + map.get("cnonce") + ":auth:" + md5(h2));

@@ -4,7 +4,7 @@ services:
     localPort: 9089
     passWord: a
     encrypt: aes-128-gcm
-    enable: true
+    enable: false
 
   - name: 端口转发服务
     mode: forward
@@ -12,3 +12,10 @@ services:
     serverPort: 9089
     localPort: 9090
     enable: false
+
+  - name: HTTP代理服务
+    mode: http_proxy
+    localPort: 9999
+    userName: a
+    passWord: a
+    enable: true

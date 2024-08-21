@@ -1,7 +1,5 @@
 package com.handlers;
 
-import com.start.Environment;
-import com.utils.Conf;
 import com.utils.KeyUtil;
 import com.utils.Rc4Md5;
 import io.netty.buffer.ByteBuf;
@@ -19,8 +17,8 @@ import java.util.List;
 public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
 
     //全局原始密码
-    private static byte[] password = new byte[0];
-    private Rc4Md5 rc4 = null;
+    private final byte[] password;
+    private Rc4Md5 rc4;
     //是否是第一次编码，第一次解码
     private boolean firstEncode = true;
     private boolean firstDecode = true;
@@ -31,27 +29,15 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
     private byte[] encodeKey;
     private byte[] decodeKey;
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        super.channelActive(ctx);
-        Conf conf = Environment.getConfFromChannel(ctx.channel());
-        if (conf != null) {
-            password = conf.getPassWord().getBytes(StandardCharsets.UTF_8);
-        }
+    public Rc4Handler(String password) {
+        this.password = password.getBytes(StandardCharsets.UTF_8);
+        this.rc4 = new Rc4Md5();
     }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
         if (firstEncode) {
-            if (rc4 == null) {
-                rc4 = new Rc4Md5();
-            }
-            /*
-             * encodeIv默认在decode时会设置，如果先调用encode方法，则随机生成encodeIv
-             * */
-           // if (encodeIv == null) {
-                encodeIv = KeyUtil.randomBytes(rc4.getNonceSize());
-            //}
+            encodeIv = KeyUtil.randomBytes(rc4.getNonceSize());
             out.writeBytes(encodeIv);
 //           生成encodeKey时，如果两个iv相同，则直接拷贝key而不是创建新的
             encodeKey = KeyUtil.md5IvKey(password, encodeIv);
@@ -77,10 +63,6 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
                 return;
             }
             decodeIv = readByte(in, rc4.getNonceSize());
-            //这里解密获取iv时，将加密用的iv也设成同样的
-//            if (encodeIv == null) {
-//                encodeIv = decodeIv;
-//            }
             decodeKey = KeyUtil.md5IvKey(password, decodeIv);
             firstDecode = false;
         }

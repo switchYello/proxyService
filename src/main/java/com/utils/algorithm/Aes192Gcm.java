@@ -1,4 +1,4 @@
-package com.utils;
+package com.utils.algorithm;
 
 /**
  * hcy 2019/11/17

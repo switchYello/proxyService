@@ -1,9 +1,7 @@
 package com.handlers;
 
-import com.start.Environment;
-import com.utils.AbstractAesGcm;
-import com.utils.Conf;
 import com.utils.KeyUtil;
+import com.utils.algorithm.AbstractAesGcm;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -16,16 +14,19 @@ import org.slf4j.LoggerFactory;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
-import static com.handlers.AesGcmHandler.DecoderStatus.*;
+import static com.handlers.AesGcmHandler.DecoderStatus.ERR;
+import static com.handlers.AesGcmHandler.DecoderStatus.READ_DATA;
+import static com.handlers.AesGcmHandler.DecoderStatus.READ_LENGTH;
 
 public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
 
     private static final Logger log = LoggerFactory.getLogger(AesGcmHandler.class);
     private AbstractAesGcm aes;
-    private String password = "";
+    private String password;
 
-    public AesGcmHandler(AbstractAesGcm aes) {
+    public AesGcmHandler(AbstractAesGcm aes, String password) {
         this.aes = aes;
+        this.password = password;
     }
 
     //限制每次encode最大大小，不能超过此值，否则需要拆包
@@ -47,7 +48,6 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     //解码当前状态
     private DecoderStatus decoderStatus = DecoderStatus.FIRST;
 
-
     enum DecoderStatus {
         /*初次读取，前saltLength位是盐*/
         FIRST,
@@ -57,15 +57,6 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
         READ_DATA,
         /*错误阶段，如解码出来的长度超过上限*/
         ERR
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        super.channelActive(ctx);
-        Conf conf = Environment.getConfFromChannel(ctx.channel());
-        if (conf != null) {
-            password = conf.getPassWord();
-        }
     }
 
     @Override

@@ -1,10 +1,10 @@
 services:
-  - name: ss服务
-    mode: ss
-    localPort: 30005
-    passWord: 924c5e53af4a
-    encrypt: aes-128-gcm
-    enable: true
+  - name: ss服务            #名称
+    mode: ss               #ss模式
+    localPort: 30005       #本地绑定端口
+    passWord: 924c5e53af4a # 密码
+    encrypt: aes-128-gcm   # 算法
+    enable: true           #是否启用
 
   - name: 端口转发服务
     mode: forward

@@ -1,19 +1,19 @@
-package com.utils;
+package com.utils.algorithm;
 
 /**
  * hcy 2019/11/17
  */
-public class Aes256Gcm extends AbstractAesGcm {
+public class Aes128Gcm extends AbstractAesGcm {
 
 
     @Override
     public int getKeySize() {
-        return 32;
+        return 16;
     }
 
     @Override
     public int getSaltSize() {
-        return 32;
+        return 16;
     }
 
     @Override
@@ -25,4 +25,5 @@ public class Aes256Gcm extends AbstractAesGcm {
     public int getTagSize() {
         return 16;
     }
+
 }

@@ -1,8 +1,8 @@
 package com.handlers;
 
-import com.utils.Aes128Gcm;
-import com.utils.Aes192Gcm;
-import com.utils.Aes256Gcm;
+import com.utils.algorithm.Aes128Gcm;
+import com.utils.algorithm.Aes192Gcm;
+import com.utils.algorithm.Aes256Gcm;
 import com.utils.KeyUtil;
 import io.netty.buffer.*;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -61,20 +61,20 @@ public class AesGcmHandlerTest {
 
     @Test
     public void testAes256GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes256GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm(),"")), KeyUtil.randomBytes(2 * 1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes256Gcm(),"")), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes256GcmSpeed");
     }
 
     @Test
     public void testAes192GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes192GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm(),"")), KeyUtil.randomBytes(2 * 1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes192Gcm(),"")), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes192GcmSpeed");
     }
 
     @Test
     public void testAes128GcmSpeed() {
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(2 * 1024 * 1024), null);
-        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm())), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes128GcmSpeed");
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm(),"")), KeyUtil.randomBytes(2 * 1024 * 1024), null);
+        testAesGcmSpeed(new EmbeddedChannel(new AesGcmHandler(new Aes128Gcm(),"")), KeyUtil.randomBytes(5 * 1024 * 1024), "Aes128GcmSpeed");
     }
 
     private void testAesGcmSpeed(EmbeddedChannel channel, byte[] bytes, String name) {

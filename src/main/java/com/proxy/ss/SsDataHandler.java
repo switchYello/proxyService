@@ -4,7 +4,7 @@ import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Assert;
 import com.utils.Conf;
-import com.utils.EncryptHandlerFactory;
+import com.utils.algorithm.EncrypAlgorithmHandlerFactory;
 import com.utils.Loops;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
@@ -32,7 +32,7 @@ public class SsDataHandler implements Consumer<Connection> {
         //增加handler
         Conf conf = Environment.getConfFromChannel(conn.channel());
         conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
-        conn.addHandlerLast(EncryptHandlerFactory.createEncryptHandler(conf.getEncrypt()));
+        conn.addHandlerLast(EncrypAlgorithmHandlerFactory.createEncryptHandler(conf.getEncrypt(),conf.getPassWord()));
         conn.addHandlerLast(new SsProtocolHandler());
 
         AtomicReference<Connection> subConnRef = new AtomicReference<>();

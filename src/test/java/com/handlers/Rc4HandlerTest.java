@@ -38,7 +38,7 @@ public class Rc4HandlerTest {
     @BeforeEach
     public void a1hotVm() {
         byte[] bytes = KeyUtil.randomBytes(2 * 1024 * 1024);
-        EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
+        EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler(""));
         testRc4HandlerSpeed(bytes, channel);
     }
 
@@ -46,7 +46,7 @@ public class Rc4HandlerTest {
     public void testRc4Speed() {
 
         byte[] bytes = KeyUtil.randomBytes(5 * 1024 * 1024 );
-        EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler());
+        EmbeddedChannel channel = new EmbeddedChannel(new Rc4Handler(""));
         long longs = testRc4HandlerSpeed(bytes, channel);
         /*
          * 1M=1000KB=1000*1000B

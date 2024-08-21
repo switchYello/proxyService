@@ -46,6 +46,8 @@ services:
   userName: a            # 用户名
   passWord: a            # 密码
   enable: false          # 是否启用
+global:
+  client_time_out: 5000  # 全局客户端超时时间 5s
 logger:
   level: DEBUG   # DEBUG,INFO,WARN,ERROR,  这里表示将连接信息输出成什么日志级别，程序只会输出info以上的日志，因此配成DEBUG就不会看到日志
   format: SIMPLE # SIMPLE,HEX_DUMP,TEXTUAL 这里是连接的日志级别SIMPLE输出简单的创建关闭等信息，HEX_DEMP会以16禁止输出报文详细信息

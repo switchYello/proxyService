@@ -34,6 +34,7 @@ public class Environment {
     @Data
     public static class ConfigWrap {
         private List<Conf> services;
+        private Map<String, String> global;
         private Map<String, String> logger;
     }
 
@@ -51,6 +52,13 @@ public class Environment {
         try (InputStream resourceAsStream = ResourceManager.gerResourceForFile(Symbols.CONF_NAME)) {
             ConfigWrap load = yaml.loadAs(resourceAsStream, ConfigWrap.class);
             Environment.confs = load.services;
+            //全局配置
+            if (load.global != null) {
+                if (load.global.containsKey("client_time_out")) {
+                    GLOBAL_TIMEOUT = Integer.parseInt(load.global.get("client_time_out"));
+                    log.info("设置全局客户端超时时间:{}", GLOBAL_TIMEOUT);
+                }
+            }
             //日志级别
             if (load.logger != null) {
                 if (load.logger.containsKey("level")) {

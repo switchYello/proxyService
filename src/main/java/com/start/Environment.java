@@ -1,6 +1,5 @@
 package com.start;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.utils.Conf;
 import com.utils.ResourceManager;
 import com.utils.Symbols;

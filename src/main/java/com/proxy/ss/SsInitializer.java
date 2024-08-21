@@ -29,7 +29,7 @@ public class SsInitializer extends ChannelInitializer<Channel> {
         if (isDebug) {
             p.addLast(new LoggingHandler("ss客户端请求流 密文"));
         }
-        p.addLast(EncryptHandlerFactory.createChannelHandler(conf.getEncrypt()));
+        p.addLast(EncryptHandlerFactory.createEncryptHandler(conf.getEncrypt()));
         if (isDebug) {
             p.addLast(new LoggingHandler("ss客户端请求流明文"));
         }

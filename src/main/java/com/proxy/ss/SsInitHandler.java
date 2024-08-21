@@ -31,13 +31,6 @@ public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
         this.addressDecoder = Socks5AddressDecoder.DEFAULT;
     }
 
-    //开始时读取一次数据
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        ctx.read();
-        super.channelActive(ctx);
-    }
-
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         try {

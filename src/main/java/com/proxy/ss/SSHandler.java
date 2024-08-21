@@ -32,7 +32,7 @@ public class SSHandler implements Consumer<Connection> {
         //增加handler
         Conf conf = Environment.getConfFromChannel(conn.channel());
         conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
-        conn.addHandlerLast(EncryptHandlerFactory.createChannelHandler(conf.getEncrypt()));
+        conn.addHandlerLast(EncryptHandlerFactory.createEncryptHandler(conf.getEncrypt()));
         conn.addHandlerLast(new SsInitHandler());
 
         AtomicReference<Connection> subConnRef = new AtomicReference<>();

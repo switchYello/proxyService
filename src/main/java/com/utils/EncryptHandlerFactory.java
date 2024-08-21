@@ -21,7 +21,7 @@ public class EncryptHandlerFactory {
         map.put("aes-256-gcm", new Aes256GcmHandlerFactory());
     }
 
-    public static ChannelHandler createChannelHandler(String encryptMethod) {
+    public static ChannelHandler createEncryptHandler(String encryptMethod) {
         HandlerFactory handlerFactory = map.get(encryptMethod);
         if (handlerFactory == null) {
             throw new RuntimeException("加密方式'" + encryptMethod + "'不支持,[" + map.keySet() + "]");

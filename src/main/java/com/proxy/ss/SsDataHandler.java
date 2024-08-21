@@ -25,7 +25,7 @@ import java.util.function.Function;
  * @since 2024/7/15 14:01
  */
 @Slf4j
-public class SSHandler implements Consumer<Connection> {
+public class SsDataHandler implements Consumer<Connection> {
 
     @Override
     public void accept(Connection conn) {
@@ -33,7 +33,7 @@ public class SSHandler implements Consumer<Connection> {
         Conf conf = Environment.getConfFromChannel(conn.channel());
         conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
         conn.addHandlerLast(EncryptHandlerFactory.createEncryptHandler(conf.getEncrypt()));
-        conn.addHandlerLast(new SsInitHandler());
+        conn.addHandlerLast(new SsProtocolHandler());
 
         AtomicReference<Connection> subConnRef = new AtomicReference<>();
 

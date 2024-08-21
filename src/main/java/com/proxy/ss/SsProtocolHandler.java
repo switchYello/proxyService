@@ -17,16 +17,16 @@ import java.util.List;
  * 首次接受到数据时,根据首byte,解析出域名端口,并创建连接
  * 后面访问时,直接转发不处理
  */
-public class SsInitHandler extends ReplayingDecoder<SsInitHandler.Status> {
+public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status> {
 
-    private static Logger log = LoggerFactory.getLogger(SsInitHandler.class);
+    private static Logger log = LoggerFactory.getLogger(SsProtocolHandler.class);
     private final Socks5AddressDecoder addressDecoder;
 
     enum Status {
         init, success, complate, err;
     }
 
-    public SsInitHandler() {
+    public SsProtocolHandler() {
         state(Status.init);
         this.addressDecoder = Socks5AddressDecoder.DEFAULT;
     }

@@ -2,7 +2,7 @@ services:
   - name: ss服务
     mode: ss
     localPort: 30005
-    passWord: a
+    passWord: 924c5e53af4a
     encrypt: aes-128-gcm
     enable: true
 

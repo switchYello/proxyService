@@ -23,7 +23,7 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
     private final Socks5AddressDecoder addressDecoder;
 
     enum Status {
-        init, success, complate, err;
+        init, success, complete, err
     }
 
     public SsProtocolHandler() {
@@ -49,10 +49,10 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
                     if (readableBytes > 0) {
                         out.add(in.readRetainedSlice(readableBytes));
                     }
-                    checkpoint(Status.complate);
+                    checkpoint(Status.complete);
                     break;
                 }
-                case complate:
+                case complete:
                     ctx.pipeline().remove(this);
                     break;
                 case err:

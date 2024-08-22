@@ -31,7 +31,7 @@ public class ForwardHandler implements Consumer<Connection> {
                     conn.inbound()
                             .receive()
                             .retain()
-                            .concatMap(data -> subConn.outbound().sendObject(data))
+                            .concatMap(data -> subConn.outbound().send(Mono.just(data)))
                             .then()
                             .subscribe(subConn.disposeSubscriber());
 
@@ -39,7 +39,7 @@ public class ForwardHandler implements Consumer<Connection> {
                     subConn.inbound()
                             .receive()
                             .retain()
-                            .concatMap(data -> conn.outbound().sendObject(data))
+                            .concatMap(data -> conn.outbound().send(Mono.just(data)))
                             .then()
                             .subscribe(conn.disposeSubscriber());
                 })

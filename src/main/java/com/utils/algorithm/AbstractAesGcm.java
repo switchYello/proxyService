@@ -17,7 +17,7 @@ public abstract class AbstractAesGcm implements CipherInfo {
 
     private static String algorithm = "AES/GCM/PKCS5Padding";
     private Cipher encoderChipher;
-    private Cipher decoderChipher;
+    private volatile Cipher decoderChipher;
 
     private Status encodeStatus = Status.none;
     private Status decodeStatus = Status.none;

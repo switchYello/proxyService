@@ -62,7 +62,7 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
             }
         } catch (Signal replay) {
             //数据量不够就主动读取
-            ctx.read();
+            //ctx.read();
             throw replay;
         }
     }

@@ -4,6 +4,7 @@ import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Conf;
 import com.utils.Loops;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -59,18 +60,16 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
                                 rightConn.get().inbound()
                                         .receive()
                                         .retain()
-                                        .concatMap(data -> leftConn.outbound().sendObject(data), 0)
+                                        .concatMap(data -> leftConn.outbound().send(Mono.just(data)), 0)
                                         .checkpoint()
                                         .subscribe(leftConn.disposeSubscriber());
                                 //响应左侧,并切换到传输状态
                                 return responseLeft(leftConn, sub, req).doFinally(st -> step.set(Step.TRANS));
-                            }).doOnError(throwable -> {
-                                log.error("子连接获取失败:{}", targetAddress, throwable);
                             });
                         }
                         case TRANS: {
                             log.debug("message typ:{}", msg);
-                            return rightConn.get().outbound().sendObject(msg);
+                            return rightConn.get().outbound().send(Mono.just((ByteBuf) msg));
                         }
                         default:
                             return Mono.error(new IllegalArgumentException("未知状态"));
@@ -79,8 +78,7 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
                 .checkpoint()
                 .then()
                 .subscribe(null, e -> {
-                    log.error("http proxy connection to client fail", e);
-                    leftConn.dispose();
+                    log.error("http proxy fail", e);
                 });
     }
 

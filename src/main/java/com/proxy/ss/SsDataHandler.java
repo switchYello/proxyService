@@ -59,7 +59,7 @@ public class SsDataHandler implements Consumer<Connection> {
                                         subConn.inbound()
                                                 .receive()
                                                 .retain()
-                                                .concatMap(data -> conn.outbound().sendObject(data))
+                                                .concatMap(data -> conn.outbound().send(Mono.just(data)))
                                                 .checkpoint()
                                                 .subscribe(conn.disposeSubscriber());
                                     })

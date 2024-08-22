@@ -33,7 +33,6 @@ public class LoginHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(PasswordChecker.getDigestNotLoginResponse());
         }
         ctx.pipeline().remove(this);
-        log.info("当前的引用数:{}", ReferenceCountUtil.refCnt(msg));
         ctx.fireChannelRead(msg);
     }
 

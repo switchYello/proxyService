@@ -48,9 +48,7 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
                 case success: {
                     int readableBytes = actualReadableBytes();
                     if (readableBytes > 0) {
-                        ByteBuf copy = Unpooled.buffer(readableBytes);
-                        copy.writeBytes(in,readableBytes);
-                        out.add(copy);
+                        out.add(in.readRetainedSlice(readableBytes));
                     }
                     checkpoint(Status.complete);
                     break;

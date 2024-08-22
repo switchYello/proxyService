@@ -4,8 +4,8 @@ import com.handlers.TimeOutHandler;
 import com.start.Environment;
 import com.utils.Assert;
 import com.utils.Conf;
-import com.utils.algorithm.EncrypAlgorithmHandlerFactory;
 import com.utils.Loops;
+import com.utils.algorithm.EncrypAlgorithmHandlerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelOption;
 import io.netty.util.ReferenceCountUtil;
@@ -27,6 +27,10 @@ import java.util.function.Function;
 @Slf4j
 public class SsDataHandler implements Consumer<Connection> {
 
+    enum Step {
+        INIT, TRANS
+    }
+
     @Override
     public void accept(Connection conn) {
         //增加handler
@@ -35,49 +39,54 @@ public class SsDataHandler implements Consumer<Connection> {
         conn.addHandlerLast(EncrypAlgorithmHandlerFactory.createEncryptHandler(conf.getEncrypt(), conf.getPassWord()));
         conn.addHandlerLast(new SsProtocolHandler());
 
+        AtomicReference<SsDataHandler.Step> step = new AtomicReference<>(SsDataHandler.Step.INIT);
         AtomicReference<Connection> subConnRef = new AtomicReference<>();
-
         conn.inbound()
                 .receiveObject()
                 .concatMap((Function<Object, Publisher<?>>) msg -> {
-                    /**
-                     * 第一条消息，是目标地址,此时创建客户端流
-                     * 创建成功后，绑定读取子流写入父流中
-                     */
-                    if (msg instanceof InetSocketAddress) {
-                        InetSocketAddress sa = (InetSocketAddress) msg;
-                        return getConn(sa.getHostName(), sa.getPort())
-                                .doOnNext(subConn -> {
-                                    subConnRef.set(subConn);
-                                    subConn.inbound()
-                                            .receive()
-                                            .retain()
-                                            .concatMap(data -> conn.outbound().sendObject(data))
-                                            .checkpoint()
-                                            .subscribe(conn.disposeSubscriber());
-                                })
-                                .doOnError(throwable -> {
-                                    log.error("子连接获取失败:{}", sa, throwable);
-                                    conn.dispose();
-                                })
-                                .then()
-                                .checkpoint();
+                    switch (step.get()) {
+                        /**
+                         * 第一条消息，是目标地址,此时创建客户端流
+                         * 创建成功后，绑定读取子流写入父流中
+                         */
+                        case INIT: {
+                            Assert.isTrue(msg instanceof InetSocketAddress, "类型不正确");
+                            step.set(Step.TRANS);
+                            InetSocketAddress sa = (InetSocketAddress) msg;
+                            return getConn(sa.getHostName(), sa.getPort())
+                                    .doOnNext(subConn -> {
+                                        subConnRef.set(subConn);
+                                        subConn.inbound()
+                                                .receive()
+                                                .retain()
+                                                .concatMap(data -> conn.outbound().sendObject(data))
+                                                .checkpoint()
+                                                .subscribe(conn.disposeSubscriber());
+                                    })
+                                    .then()
+                                    ;
+                        }
+                        /**
+                         * 第二条消息后，都是数据
+                         * concatMap 操作符保证了读取第二条消息时，连接一定创建成功状态
+                         */
+                        case TRANS: {
+                            Assert.isTrue(msg instanceof ByteBuf, "类型不正确");
+                            Assert.notNull(subConnRef.get(), "subConn is null");
+                            ReferenceCountUtil.retain(msg);
+                            return subConnRef.get().outbound().send(Mono.just((ByteBuf) msg));
+//                            return subConnRef.get().outbound().sendObject(msg);
+                        }
+                        default: {
+                            return Mono.error(new IllegalArgumentException("未知的数据类型"));
+                        }
                     }
-                    /**
-                     * 第二条消息后，都是数据
-                     * concatMap 操作符保证了读取第二条消息时，连接一定创建成功状态
-                     */
-                    if (msg instanceof ByteBuf) {
-                        Assert.notNull(subConnRef.get(), "subConn is null");
-                        ReferenceCountUtil.retain(msg);
-                        return subConnRef.get().outbound().sendObject(msg);
-                    }
-                    return Mono.error(new IllegalArgumentException("未知的数据类型"));
                 }, 0)
                 .checkpoint()
                 .then()
                 .subscribe(null, e -> {
-                    conn.dispose();
+                    log.error("主链接报错", e);
+//                    conn.dispose();
                 });
     }
 

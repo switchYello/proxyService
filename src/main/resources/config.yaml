@@ -22,5 +22,5 @@ services:
 global:
   client_time_out: 5000 # 全局客户端超时时间 5s
 logger:
-  level: DEBUG   # DEBUG,INFO,WARN,ERROR
+  level: INFO   # DEBUG,INFO,WARN,ERROR
   format: SIMPLE # SIMPLE,HEX_DUMP,TEXTUAL

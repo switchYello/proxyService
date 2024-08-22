@@ -32,7 +32,7 @@ public class SsDataHandler implements Consumer<Connection> {
         //增加handler
         Conf conf = Environment.getConfFromChannel(conn.channel());
         conn.addHandlerLast(new TimeOutHandler(30, 30, 0));
-        conn.addHandlerLast(EncrypAlgorithmHandlerFactory.createEncryptHandler(conf.getEncrypt(),conf.getPassWord()));
+        conn.addHandlerLast(EncrypAlgorithmHandlerFactory.createEncryptHandler(conf.getEncrypt(), conf.getPassWord()));
         conn.addHandlerLast(new SsProtocolHandler());
 
         AtomicReference<Connection> subConnRef = new AtomicReference<>();
@@ -77,7 +77,6 @@ public class SsDataHandler implements Consumer<Connection> {
                 .checkpoint()
                 .then()
                 .subscribe(null, e -> {
-                    log.error("connection to client {}:{} fail", conf.getServerHost(), conf.getServerPort(), e);
                     conn.dispose();
                 });
     }

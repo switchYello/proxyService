@@ -97,7 +97,7 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
             }
 //            如果是读取数据长度阶段，则读取前 2 + tagLength位，并解密
             case READ_LENGTH: {
-                //出第一次外以后非第一次都是以【*数据长度short* 数据长度tag *负载数据* 负载数据tag】这样的形式组成的
+                //除第一次外以后非第一次都是以【*数据长度short* 数据长度tag *负载数据* 负载数据tag】这样的形式组成的
                 //获取两位的长度数据和加密它的tag数据
                 if (in.readableBytes() < 2 + aes.getTagSize()) {
                     return;

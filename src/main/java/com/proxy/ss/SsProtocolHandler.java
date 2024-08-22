@@ -1,6 +1,7 @@
 package com.proxy.ss;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.codec.socksx.v5.Socks5AddressDecoder;
@@ -47,7 +48,9 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
                 case success: {
                     int readableBytes = actualReadableBytes();
                     if (readableBytes > 0) {
-                        out.add(in.readRetainedSlice(readableBytes));
+                        ByteBuf copy = Unpooled.buffer(readableBytes);
+                        copy.writeBytes(in,readableBytes);
+                        out.add(copy);
                     }
                     checkpoint(Status.complete);
                     break;
@@ -68,7 +71,7 @@ public class SsProtocolHandler extends ReplayingDecoder<SsProtocolHandler.Status
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.debug("报错忽略剩余所有字节", cause);
+        log.error("报错忽略剩余所有字节", cause);
         state(Status.err);
     }
 }

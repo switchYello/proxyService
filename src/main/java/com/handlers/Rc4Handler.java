@@ -84,5 +84,4 @@ public class Rc4Handler extends ByteToMessageCodec<ByteBuf> {
         return bytes;
     }
 
-
 }

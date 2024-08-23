@@ -101,11 +101,12 @@ public class HttpProxyDataHandler implements Consumer<Connection> {
         else {
             req.headers().remove("Proxy-Authorization").remove("Proxy-Connection").add("Connection", "keep-alive");
             rightConn.addHandlerLast("httpRequestEncoder", new HttpRequestEncoder());
-            return rightConn.outbound().sendObject(req.retain()).then(Mono.fromRunnable(() -> {
-                rightConn.removeHandler("httpRequestEncoder");
-                leftConn.removeHandler("httpcode");
-                leftConn.removeHandler("objectAggregator");
-            })).then();
+            return rightConn.outbound().sendObject(req.retain())
+                    .then(Mono.fromRunnable(() -> {
+                        rightConn.removeHandler("httpRequestEncoder");
+                        leftConn.removeHandler("httpcode");
+                        leftConn.removeHandler("objectAggregator");
+                    })).then();
         }
     }
 

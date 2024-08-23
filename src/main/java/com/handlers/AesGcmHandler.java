@@ -171,6 +171,6 @@ public class AesGcmHandler extends ByteToMessageCodec<ByteBuf> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         checkDecoderStatus(DecoderStatus.ERR);
-        log.error("对方ip:" + ctx.channel().remoteAddress(), cause);
+        ctx.fireExceptionCaught(cause);
     }
 }

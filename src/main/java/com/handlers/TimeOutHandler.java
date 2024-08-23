@@ -23,4 +23,9 @@ public class TimeOutHandler extends IdleStateHandler {
         ctx.close();
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("对方ip:" + ctx.channel().remoteAddress(), cause);
+    }
+
 }

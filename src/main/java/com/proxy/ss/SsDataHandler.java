@@ -59,7 +59,7 @@ public class SsDataHandler implements Consumer<Connection> {
                                         subConn.inbound()
                                                 .receive()
                                                 .retain()
-                                                .concatMap(data -> conn.outbound().send(Mono.just(data)))
+                                                .concatMap(data -> conn.outbound().sendObject(data.copy()))
                                                 .checkpoint()
                                                 .subscribe(conn.disposeSubscriber());
                                     })
@@ -73,9 +73,7 @@ public class SsDataHandler implements Consumer<Connection> {
                         case TRANS: {
                             Assert.isTrue(msg instanceof ByteBuf, "类型不正确");
                             Assert.notNull(subConnRef.get(), "subConn is null");
-                            ReferenceCountUtil.retain(msg);
-                            return subConnRef.get().outbound().send(Mono.just((ByteBuf) msg));
-//                            return subConnRef.get().outbound().sendObject(msg);
+                            return subConnRef.get().outbound().sendObject(((ByteBuf) msg).copy());
                         }
                         default: {
                             return Mono.error(new IllegalArgumentException("未知的数据类型"));
